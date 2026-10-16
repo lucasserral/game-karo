@@ -4,7 +4,7 @@ import { BoundingBox } from '../math/BoundingBox.ts';
 import type { ICollidable } from '../core/ICollidable.ts';
 
 export type Direction = 'up' | 'down' | 'left' | 'right';
-export type ActorState = 'idle' | 'walking';
+export type ActorState = 'idle' | 'walk';
 
 /**
  * Abstract class for dynamic, movable entities.
@@ -61,7 +61,7 @@ export abstract class Actor extends GameObject implements ICollidable {
       return;
     }
 
-    this.state = 'walking';
+    this.state = 'walk';
 
     // Prioritize dominant axis for clean 4-way visual orientation
     if (Math.abs(movement.x) > Math.abs(movement.y)) {
