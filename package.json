@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "process-sprites": "node scripts/process-spritesheet.mjs"
   },
   "devDependencies": {
     "sharp": "^0.35.5",

@@ -18,9 +18,9 @@ export class Player extends Actor {
   private notificationTimer = 0;
 
   constructor(x: number, y: number, inputManager: InputManager) {
-    super(x, y, 36, 54, 140, 20); // 36x54px hero dimension, 140px/sec movement speed, zIndex 20
-    this.colliderOffset.set(6, 38);
-    this.colliderSize.set(24, 14);
+    super(x, y, 36, 46, 140, 20); // 36x46px hero dimension, 140px/sec movement speed, zIndex 20
+    this.colliderOffset.set(5, 30);
+    this.colliderSize.set(26, 14);
     this.inputManager = inputManager;
     this.animator = AssetManager.getInstance().createPlayerAnimator();
   }
@@ -77,7 +77,7 @@ export class Player extends Actor {
     ctx.save();
     ctx.fillStyle = 'rgba(0, 0, 0, 0.35)';
     ctx.beginPath();
-    ctx.ellipse(x + 18, y + 49, 12, 5, 0, 0, Math.PI * 2);
+    ctx.ellipse(x + 18, y + 42, 11, 4, 0, 0, Math.PI * 2);
     ctx.fill();
     ctx.restore();
 

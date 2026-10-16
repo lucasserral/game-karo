@@ -341,19 +341,39 @@ export class AssetManager {
    * Fila 3: Arriba (up)
    */
   public async loadHeroSpriteSheet(url = '/sprites/hero.png'): Promise<void> {
-    const sheet = await SpriteSheet.load(url, 64, 104, 8, 4);
+    const img = new Image();
+    img.src = url;
+    await new Promise<void>((resolve, reject) => {
+      img.onload = () => resolve();
+      img.onerror = (e) => reject(new Error(`Error cargando imagen en ${url}: ${e}`));
+    });
 
-    const rowMap = {
-      right: 0,
-      left: 1,
-      down: 2,
-      up: 3,
-    } as const;
+    // Cargar metadatos si existen
+    let cols = 4;
+    let rows = 4;
+    let directions: Array<'down' | 'up' | 'left' | 'right'> = ['down', 'up', 'left', 'right'];
 
-    for (const [dir, rowIndex] of Object.entries(rowMap)) {
+    try {
+      const res = await fetch('/sprites/hero.json');
+      if (res.ok) {
+        const meta = await res.json();
+        if (meta.cols) cols = meta.cols;
+        if (meta.rows) rows = meta.rows;
+        if (Array.isArray(meta.directions)) directions = meta.directions;
+      }
+    } catch {
+      // Usar defaults
+    }
+
+    const frameWidth = Math.floor(img.naturalWidth / cols);
+    const frameHeight = Math.floor(img.naturalHeight / rows);
+    const sheet = new SpriteSheet(img, frameWidth, frameHeight, cols, rows);
+
+    for (let r = 0; r < directions.length; r++) {
+      const dir = directions[r];
       const frames: Sprite[] = [];
-      for (let col = 0; col < 8; col++) {
-        frames.push(sheet.getSprite(col, rowIndex));
+      for (let c = 0; c < cols; c++) {
+        frames.push(sheet.getSprite(c, r));
       }
       this.playerFrames[dir] = frames;
     }
@@ -370,27 +390,36 @@ export class AssetManager {
       const allFrames = this.playerFrames[dir] || [];
       if (allFrames.length === 0) continue;
 
-      // Idle clip uses the first standing frame
-      animator.addClip({
-        name: `idle_${dir}`,
-        frames: [allFrames[0]],
-        frameDuration: 0.5,
-        loop: true,
-      });
-
       if (allFrames.length >= 8) {
-        // High fidelity 8-frame walk cycle
+        // Ciclo de 8 fotogramas
+        const idleFrame = allFrames[4] ?? allFrames[0];
+        animator.addClip({
+          name: `idle_${dir}`,
+          frames: [idleFrame],
+          frameDuration: 0.5,
+          loop: true,
+        });
+
         animator.addClip({
           name: `walk_${dir}`,
           frames: allFrames,
-          frameDuration: 0.09, // ~11 FPS smooth walk cycle
+          frameDuration: 0.08,
           loop: true,
         });
       } else {
-        // Fallback 4-frame cycle
+        // Ciclo clásico de 4 fotogramas (Paso 1, Reposo, Paso 2, Reposo)
+        animator.addClip({
+          name: `idle_${dir}`,
+          frames: [allFrames[0]],
+          frameDuration: 0.5,
+          loop: true,
+        });
+
         animator.addClip({
           name: `walk_${dir}`,
-          frames: [allFrames[1], allFrames[0], allFrames[3], allFrames[0]],
+          frames: allFrames.length === 4
+            ? [allFrames[1], allFrames[2], allFrames[3], allFrames[0]]
+            : allFrames,
           frameDuration: 0.14,
           loop: true,
         });

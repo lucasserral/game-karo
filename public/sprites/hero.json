@@ -1,0 +1,16 @@
+{
+  "name": "hero",
+  "source": "src/assets/hero-walking.png",
+  "cols": 4,
+  "rows": 4,
+  "totalFrames": 16,
+  "frameWidth": 64,
+  "frameHeight": 81,
+  "directions": [
+    "down",
+    "up",
+    "left",
+    "right"
+  ],
+  "processedAt": "2026-10-16T23:43:47.276Z"
+}
