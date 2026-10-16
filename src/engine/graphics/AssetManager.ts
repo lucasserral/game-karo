@@ -1,5 +1,6 @@
 import { Sprite } from './Sprite.ts';
 import { AnimatedSprite } from './AnimatedSprite.ts';
+import { SpriteSheet } from './SpriteSheet.ts';
 
 /**
  * AssetManager creates and stores sprites, tiles, and animations.
@@ -332,17 +333,44 @@ export class AssetManager {
   }
 
   /**
+   * Carga una hoja de sprites externa (como /sprites/hero.png) y mapea sus fotogramas.
+   * La hoja tiene 8 columnas de animación por 4 filas direccionales:
+   * Fila 0: Derecha (right)
+   * Fila 1: Izquierda (left)
+   * Fila 2: Abajo (down)
+   * Fila 3: Arriba (up)
+   */
+  public async loadHeroSpriteSheet(url = '/sprites/hero.png'): Promise<void> {
+    const sheet = await SpriteSheet.load(url, 64, 104, 8, 4);
+
+    const rowMap = {
+      right: 0,
+      left: 1,
+      down: 2,
+      up: 3,
+    } as const;
+
+    for (const [dir, rowIndex] of Object.entries(rowMap)) {
+      const frames: Sprite[] = [];
+      for (let col = 0; col < 8; col++) {
+        frames.push(sheet.getSprite(col, rowIndex));
+      }
+      this.playerFrames[dir] = frames;
+    }
+  }
+
+  /**
    * Constructs an AnimatedSprite for the player with all 4 directions and idle states.
    */
   public createPlayerAnimator(): AnimatedSprite {
     const animator = new AnimatedSprite();
-    const frameSpeed = 0.14; // seconds per frame for smooth walk cadence
-
     const directions = ['down', 'up', 'left', 'right'] as const;
 
     for (const dir of directions) {
-      const allFrames = this.playerFrames[dir];
-      // Idle clip uses the neutral standing frame (frame 0)
+      const allFrames = this.playerFrames[dir] || [];
+      if (allFrames.length === 0) continue;
+
+      // Idle clip uses the first standing frame
       animator.addClip({
         name: `idle_${dir}`,
         frames: [allFrames[0]],
@@ -350,13 +378,23 @@ export class AssetManager {
         loop: true,
       });
 
-      // Walk cycle: frame 0 -> frame 1 -> frame 2 -> frame 3
-      animator.addClip({
-        name: `walk_${dir}`,
-        frames: [allFrames[1], allFrames[0], allFrames[3], allFrames[0]],
-        frameDuration: frameSpeed,
-        loop: true,
-      });
+      if (allFrames.length >= 8) {
+        // High fidelity 8-frame walk cycle
+        animator.addClip({
+          name: `walk_${dir}`,
+          frames: allFrames,
+          frameDuration: 0.09, // ~11 FPS smooth walk cycle
+          loop: true,
+        });
+      } else {
+        // Fallback 4-frame cycle
+        animator.addClip({
+          name: `walk_${dir}`,
+          frames: [allFrames[1], allFrames[0], allFrames[3], allFrames[0]],
+          frameDuration: 0.14,
+          loop: true,
+        });
+      }
     }
 
     animator.play('idle_down');

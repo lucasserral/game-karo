@@ -18,7 +18,9 @@ export class Player extends Actor {
   private notificationTimer = 0;
 
   constructor(x: number, y: number, inputManager: InputManager) {
-    super(x, y, 32, 32, 140, 20); // 140px/sec movement speed, zIndex 20
+    super(x, y, 36, 54, 140, 20); // 36x54px hero dimension, 140px/sec movement speed, zIndex 20
+    this.colliderOffset.set(6, 38);
+    this.colliderSize.set(24, 14);
     this.inputManager = inputManager;
     this.animator = AssetManager.getInstance().createPlayerAnimator();
   }
@@ -71,11 +73,11 @@ export class Player extends Actor {
     const x = Math.floor(this.position.x);
     const y = Math.floor(this.position.y);
 
-    // 1. Subtle drop shadow beneath the character
+    // 1. Subtle drop shadow beneath the character's feet
     ctx.save();
     ctx.fillStyle = 'rgba(0, 0, 0, 0.35)';
     ctx.beginPath();
-    ctx.ellipse(x + 16, y + 29, 9, 4, 0, 0, Math.PI * 2);
+    ctx.ellipse(x + 18, y + 49, 12, 5, 0, 0, Math.PI * 2);
     ctx.fill();
     ctx.restore();
 
@@ -87,8 +89,8 @@ export class Player extends Actor {
       ctx.save();
       ctx.font = 'bold 11px system-ui, sans-serif';
       const textWidth = ctx.measureText(this.lastNotification).width;
-      const bubbleX = x + 16 - textWidth / 2 - 6;
-      const bubbleY = y - 18;
+      const bubbleX = x + 18 - textWidth / 2 - 6;
+      const bubbleY = y - 16;
 
       ctx.fillStyle = 'rgba(15, 23, 42, 0.88)';
       ctx.strokeStyle = '#38bdf8';
@@ -100,7 +102,7 @@ export class Player extends Actor {
 
       ctx.fillStyle = '#f8fafc';
       ctx.textAlign = 'center';
-      ctx.fillText(this.lastNotification, x + 16, bubbleY + 12);
+      ctx.fillText(this.lastNotification, x + 18, bubbleY + 12);
       ctx.restore();
     }
   }

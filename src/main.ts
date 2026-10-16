@@ -1,27 +1,36 @@
 import './style.css';
 import { GameEngine } from './engine/core/GameEngine.ts';
 import { LevelBuilder } from './engine/world/LevelBuilder.ts';
+import { AssetManager } from './engine/graphics/AssetManager.ts';
 
-window.addEventListener('DOMContentLoaded', () => {
+window.addEventListener('DOMContentLoaded', async () => {
   const canvas = document.getElementById('game-canvas') as HTMLCanvasElement;
   if (!canvas) {
     throw new Error('Canvas element #game-canvas not found.');
   }
 
-  // 1. Initialize Game Engine with 2.2x pixel-art zoom
+  // 1. Preload user hero spritesheet from /sprites/hero.png
+  try {
+    await AssetManager.getInstance().loadHeroSpriteSheet('/sprites/hero.png');
+    console.log('Hero spritesheet loaded successfully.');
+  } catch (err) {
+    console.warn('Could not load /sprites/hero.png, using procedural fallback:', err);
+  }
+
+  // 2. Initialize Game Engine with 2.2x pixel-art zoom
   const engine = new GameEngine({
     canvas,
     zoom: 2.2,
   });
 
-  // 2. Build demo world with walls, pillars, player, key, and locked door
+  // 3. Build demo world with walls, pillars, player, key, and locked door
   const world = LevelBuilder.buildDemoWorld(engine.input);
   engine.setWorld(world);
 
-  // 3. Start RAF loop
+  // 4. Start RAF loop
   engine.start();
 
-  // 4. Auto-focus canvas so user can play immediately with WASD
+  // 5. Auto-focus canvas so user can play immediately with WASD
   canvas.focus();
 
   // 5. Wire DOM HUD elements (FPS counter and Inventory Slot)
