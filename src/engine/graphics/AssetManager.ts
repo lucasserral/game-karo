@@ -379,6 +379,42 @@ export class AssetManager {
     }
   }
 
+  public heroIdleSprite: Sprite | null = null;
+
+  public async loadHeroIdleSprite(url = '/sprites/hero-idle.png'): Promise<void> {
+    try {
+      const img = new Image();
+      img.src = url;
+      await new Promise<void>((resolve, reject) => {
+        img.onload = () => resolve();
+        img.onerror = () => reject(new Error('No idle sprite found'));
+      });
+      this.heroIdleSprite = new Sprite(img, 0, 0, img.naturalWidth, img.naturalHeight);
+    } catch {
+      this.heroIdleSprite = null;
+    }
+  }
+
+  /**
+   * Carga una imagen de tileset externa (como /sprites/tileset.png) para reemplazar
+   * los sprites del entorno (suelo, paredes, pilares, puertas y llave).
+   */
+  public async loadCustomTileset(url = '/sprites/tileset.png', tileSize = 32): Promise<void> {
+    try {
+      const sheet = await SpriteSheet.load(url, tileSize, tileSize);
+      this.floorSprite      = sheet.getSprite(0, 0);
+      this.wallSprite       = sheet.getSprite(1, 0);
+      this.wallTopSprite    = sheet.getSprite(2, 0);
+      this.pillarSprite     = sheet.getSprite(3, 0);
+      this.doorClosedSprite = sheet.getSprite(0, 1);
+      this.doorOpenSprite   = sheet.getSprite(1, 1);
+      this.keySprite        = sheet.getSprite(2, 1);
+      console.log(`Tileset cargado exitosamente desde ${url}`);
+    } catch (err) {
+      console.warn(`No se encontró tileset en ${url}, manteniendo gráficos generados.`, err);
+    }
+  }
+
   /**
    * Constructs an AnimatedSprite for the player with all 4 directions and idle states.
    */
@@ -392,7 +428,10 @@ export class AssetManager {
 
       if (allFrames.length >= 8) {
         // Ciclo de 8 fotogramas
-        const idleFrame = allFrames[4] ?? allFrames[0];
+        const idleFrame = (dir === 'down' && this.heroIdleSprite)
+          ? this.heroIdleSprite
+          : (allFrames[4] ?? allFrames[0]);
+
         animator.addClip({
           name: `idle_${dir}`,
           frames: [idleFrame],

@@ -9,12 +9,14 @@ window.addEventListener('DOMContentLoaded', async () => {
     throw new Error('Canvas element #game-canvas not found.');
   }
 
-  // 1. Preload user hero spritesheet from /sprites/hero.png
+  // 1. Preload sprites (hero walking, optional idle pose, optional custom tileset)
   try {
     await AssetManager.getInstance().loadHeroSpriteSheet('/sprites/hero.png');
-    console.log('Hero spritesheet loaded successfully.');
+    await AssetManager.getInstance().loadHeroIdleSprite('/sprites/hero-idle.png');
+    await AssetManager.getInstance().loadCustomTileset('/sprites/tileset.png');
+    console.log('Game assets loaded successfully.');
   } catch (err) {
-    console.warn('Could not load /sprites/hero.png, using procedural fallback:', err);
+    console.warn('Using procedural fallbacks for missing assets:', err);
   }
 
   // 2. Initialize Game Engine with 2.2x pixel-art zoom
