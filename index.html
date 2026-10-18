@@ -36,87 +36,107 @@
         </div>
       </header>
 
-      <!-- Main Game Container -->
-      <main class="game-main">
-        <div class="arcade-cabinet">
-          <!-- Canvas Frame -->
-          <div class="canvas-wrapper" id="canvas-container">
-            <canvas id="game-canvas" width="800" height="520" tabindex="0"></canvas>
-          </div>
+      <!-- Navigation Tabs -->
+      <nav class="nav-tabs" role="tablist" aria-label="Modos de la aplicación">
+        <button class="nav-tab active" id="tab-game" role="tab" aria-selected="true" aria-controls="view-game">
+          <span class="tab-icon">🎮</span>
+          <span>Juego</span>
+        </button>
+        <button class="nav-tab" id="tab-paint" role="tab" aria-selected="false" aria-controls="view-paint">
+          <span class="tab-icon">🎨</span>
+          <span>Tile Studio (Paint XP)</span>
+          <span class="tab-badge">Editor de Tiles</span>
+        </button>
+      </nav>
 
-          <!-- Controls & Status Bar below Canvas -->
-          <footer class="game-toolbar">
-            <div class="toolbar-section controls-hint">
-              <span class="section-label">Movimiento:</span>
-              <div class="key-group">
-                <kbd class="key-badge">W</kbd>
-                <kbd class="key-badge">A</kbd>
-                <kbd class="key-badge">S</kbd>
-                <kbd class="key-badge">D</kbd>
-              </div>
-              <span class="hint-text">(o Flechas)</span>
+      <!-- View 1: Game -->
+      <section id="view-game" class="tab-view active" role="tabpanel" aria-labelledby="tab-game">
+        <main class="game-main">
+          <div class="arcade-cabinet">
+            <!-- Canvas Frame -->
+            <div class="canvas-wrapper" id="canvas-container">
+              <canvas id="game-canvas" width="800" height="520" tabindex="0"></canvas>
             </div>
 
-            <div class="toolbar-section interaction-hint">
-              <span class="section-label">Acción Activa:</span>
-              <div class="key-group">
-                <kbd class="key-badge key-action">E</kbd>
-                <span class="hint-text">/ <kbd class="key-badge key-action">Espacio</kbd> Interactuar</span>
+            <!-- Controls & Status Bar below Canvas -->
+            <footer class="game-toolbar">
+              <div class="toolbar-section controls-hint">
+                <span class="section-label">Movimiento:</span>
+                <div class="key-group">
+                  <kbd class="key-badge">W</kbd>
+                  <kbd class="key-badge">A</kbd>
+                  <kbd class="key-badge">S</kbd>
+                  <kbd class="key-badge">D</kbd>
+                </div>
+                <span class="hint-text">(o Flechas)</span>
               </div>
-            </div>
 
-            <div class="toolbar-section inventory-section">
-              <span class="section-label">Inventario:</span>
-              <div class="inventory-slots" id="inventory-display">
-                <div class="inventory-slot empty" id="slot-key" title="Ranura de Llave">
-                  <span class="slot-icon">🗝️</span>
-                  <span class="slot-label">Sin Llave</span>
+              <div class="toolbar-section interaction-hint">
+                <span class="section-label">Acción Activa:</span>
+                <div class="key-group">
+                  <kbd class="key-badge key-action">E</kbd>
+                  <span class="hint-text">/ <kbd class="key-badge key-action">Espacio</kbd> Interactuar</span>
                 </div>
               </div>
-            </div>
-          </footer>
-        </div>
 
-        <!-- Sidebar / Inspection Panel -->
-        <aside class="features-sidebar">
-          <section class="panel-card">
-            <h3>🏗️ Arquitectura POO Implementada</h3>
-            <ul class="feature-list">
-              <li>
-                <strong>Herencia & Polimorfismo:</strong>
-                <code>GameObject</code> clase base abstracta con <code>Actor</code>, <code>StaticObstacle</code>, <code>Door</code> y <code>KeyItem</code>.
-              </li>
-              <li>
-                <strong>Acción Pasiva:</strong>
-                <code>ICollidable</code> con AABB desacoplada en X/Y para bloqueo y deslizamiento fluido en paredes.
-              </li>
-              <li>
-                <strong>Acción Activa:</strong>
-                <code>IInteractive</code> para interacción contextual de puertas con cerrojo y llaves.
-              </li>
-              <li>
-                <strong>Cámara Cenital:</strong>
-                Seguimiento suave (<em>lerp</em>) centrado en el jugador con delimitación al mundo visible.
-              </li>
-              <li>
-                <strong>Sprites & Animación:</strong>
-                Ciclos de caminata y reposo en 4 direcciones (arriba, abajo, izquierda, derecha) con renderizado pixel art nítido.
-              </li>
-              <li>
-                <strong>Ergonomía Web:</strong>
-                <code>e.preventDefault()</code> selectivo en el canvas para evitar el scroll del navegador.
-              </li>
-            </ul>
-          </section>
+              <div class="toolbar-section inventory-section">
+                <span class="section-label">Inventario:</span>
+                <div class="inventory-slots" id="inventory-display">
+                  <div class="inventory-slot empty" id="slot-key" title="Ranura de Llave">
+                    <span class="slot-icon">🗝️</span>
+                    <span class="slot-label">Sin Llave</span>
+                  </div>
+                </div>
+              </div>
+            </footer>
+          </div>
 
-          <section class="panel-card mission-card">
-            <h3>🎯 Misión del Jugador</h3>
-            <p>1. Explora el laberinto utilizando <kbd>WASD</kbd>.</p>
-            <p>2. Localiza la <strong>Llave Dorada</strong> en la cámara norte.</p>
-            <p>3. Abre la <strong>Puerta Cerrada</strong> con <kbd>E</kbd> para acceder a la sala secreta.</p>
-          </section>
-        </aside>
-      </main>
+          <!-- Sidebar / Inspection Panel -->
+          <aside class="features-sidebar">
+            <section class="panel-card">
+              <h3>🏗️ Arquitectura POO Implementada</h3>
+              <ul class="feature-list">
+                <li>
+                  <strong>Herencia & Polimorfismo:</strong>
+                  <code>GameObject</code> clase base abstracta con <code>Actor</code>, <code>StaticObstacle</code>, <code>Door</code> y <code>KeyItem</code>.
+                </li>
+                <li>
+                  <strong>Acción Pasiva:</strong>
+                  <code>ICollidable</code> con AABB desacoplada en X/Y para bloqueo y deslizamiento fluido en paredes.
+                </li>
+                <li>
+                  <strong>Acción Activa:</strong>
+                  <code>IInteractive</code> para interacción contextual de puertas con cerrojo y llaves.
+                </li>
+                <li>
+                  <strong>Cámara Cenital:</strong>
+                  Seguimiento suave (<em>lerp</em>) centrado en el jugador con delimitación al mundo visible.
+                </li>
+                <li>
+                  <strong>Sprites & Animación:</strong>
+                  Ciclos de caminata y reposo en 4 direcciones (arriba, abajo, izquierda, derecha) con renderizado pixel art nítido.
+                </li>
+                <li>
+                  <strong>Tile Studio Integrado:</strong>
+                  Pestaña para pintar tiles estilo MS Paint XP y copiar el código generado directamente al motor.
+                </li>
+              </ul>
+            </section>
+
+            <section class="panel-card mission-card">
+              <h3>🎯 Misión del Jugador</h3>
+              <p>1. Explora el laberinto utilizando <kbd>WASD</kbd>.</p>
+              <p>2. Localiza la <strong>Llave Dorada</strong> en la cámara norte.</p>
+              <p>3. Abre la <strong>Puerta Cerrada</strong> con <kbd>E</kbd> para acceder a la sala secreta.</p>
+            </section>
+          </aside>
+        </main>
+      </section>
+
+      <!-- View 2: Tile Studio / MS Paint XP -->
+      <section id="view-paint" class="tab-view" role="tabpanel" aria-labelledby="tab-paint">
+        <div id="tile-studio-mount"></div>
+      </section>
     </div>
     <script type="module" src="/src/main.ts"></script>
   </body>

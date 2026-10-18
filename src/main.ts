@@ -2,6 +2,7 @@ import './style.css';
 import { GameEngine } from './engine/core/GameEngine.ts';
 import { LevelBuilder } from './engine/world/LevelBuilder.ts';
 import { AssetManager } from './engine/graphics/AssetManager.ts';
+import { TileStudio } from './editor/TileStudio.ts';
 
 window.addEventListener('DOMContentLoaded', async () => {
   const canvas = document.getElementById('game-canvas') as HTMLCanvasElement;
@@ -35,7 +36,7 @@ window.addEventListener('DOMContentLoaded', async () => {
   // 5. Auto-focus canvas so user can play immediately with WASD
   canvas.focus();
 
-  // 5. Wire DOM HUD elements (FPS counter and Inventory Slot)
+  // 6. Wire DOM HUD elements (FPS counter and Inventory Slot)
   const fpsBadge = document.getElementById('fps-badge');
   const slotKey = document.getElementById('slot-key');
 
@@ -70,4 +71,50 @@ window.addEventListener('DOMContentLoaded', async () => {
   };
 
   requestAnimationFrame(updateHUD);
+
+  // 7. Initialize Tile Studio (MS Paint XP Editor)
+  const tileStudioMount = document.getElementById('tile-studio-mount');
+  let tileStudio: TileStudio | null = null;
+  if (tileStudioMount) {
+    tileStudio = new TileStudio({
+      container: tileStudioMount,
+      initialSize: 32,
+    });
+  }
+
+  // 8. Tab Navigation Logic (Juego vs Tile Studio)
+  const tabGame = document.getElementById('tab-game') as HTMLButtonElement;
+  const tabPaint = document.getElementById('tab-paint') as HTMLButtonElement;
+  const viewGame = document.getElementById('view-game') as HTMLElement;
+  const viewPaint = document.getElementById('view-paint') as HTMLElement;
+
+  const switchTab = (activeTab: 'game' | 'paint'): void => {
+    if (activeTab === 'game') {
+      tabGame.classList.add('active');
+      tabGame.setAttribute('aria-selected', 'true');
+      tabPaint.classList.remove('active');
+      tabPaint.setAttribute('aria-selected', 'false');
+
+      viewGame.classList.add('active');
+      viewPaint.classList.remove('active');
+
+      canvas.focus();
+    } else {
+      tabPaint.classList.add('active');
+      tabPaint.setAttribute('aria-selected', 'true');
+      tabGame.classList.remove('active');
+      tabGame.setAttribute('aria-selected', 'false');
+
+      viewPaint.classList.add('active');
+      viewGame.classList.remove('active');
+
+      if (tileStudio) {
+        tileStudio.render();
+      }
+    }
+  };
+
+  tabGame?.addEventListener('click', () => switchTab('game'));
+  tabPaint?.addEventListener('click', () => switchTab('paint'));
 });
+
