@@ -48,40 +48,38 @@ export class Sprite {
 
 Actualmente, solo el **héroe** proviene de una imagen externa (`public/sprites/hero.png`). 
 
-Los elementos del entorno (**suelo, paredes, pilares, puertas y llaves**) se generan automáticamente en un **Canvas offscreen en memoria** dentro de [`AssetManager.ts`](file:///Users/lucas/dev/projects/game-karo/src/engine/graphics/AssetManager.ts). Esto se hizo para que el juego fuese 100% jugable de inmediato sin depender de archivos de texturas externos.
+Actualmente, el **héroe** proviene de una imagen externa (`public/sprites/hero.png`). 
+
+Los elementos del entorno (**suelo, paredes, pilares, puertas y llaves**) están desacoplados en objetos TypeScript individuales dentro de la carpeta [`src/engine/graphics/tiles/`](file:///Users/lucas/dev/projects/game-karo/src/engine/graphics/tiles/) utilizando **Herencia** (`BaseTile`) y el patrón de diseño **Factory** ([`TileFactory.ts`](file:///Users/lucas/dev/projects/game-karo/src/engine/graphics/tiles/TileFactory.ts)).
+
+### Estructura de la carpeta `tiles/`:
+- [`BaseTile.ts`](file:///Users/lucas/dev/projects/game-karo/src/engine/graphics/tiles/BaseTile.ts): Clase base abstracta con utilidades `pixel()`, `renderToCanvas()` y `toSprite()`.
+- [`FloorTile.ts`](file:///Users/lucas/dev/projects/game-karo/src/engine/graphics/tiles/FloorTile.ts): Hereda de `BaseTile` y renderiza el suelo de mazmorra.
+- [`WallTile.ts`](file:///Users/lucas/dev/projects/game-karo/src/engine/graphics/tiles/WallTile.ts): Hereda de `BaseTile` y renderiza el bloque de piedra con biseles.
+- [`WallTopTile.ts`](file:///Users/lucas/dev/projects/game-karo/src/engine/graphics/tiles/WallTopTile.ts): Hereda de `BaseTile` y renderiza la cornisa superior.
+- [`PillarTile.ts`](file:///Users/lucas/dev/projects/game-karo/src/engine/graphics/tiles/PillarTile.ts): Hereda de `BaseTile` y renderiza el pilar con gema.
+- [`DoorClosedTile.ts`](file:///Users/lucas/dev/projects/game-karo/src/engine/graphics/tiles/DoorClosedTile.ts): Hereda de `BaseTile` y renderiza la puerta cerrada con cerrojo.
+- [`DoorOpenTile.ts`](file:///Users/lucas/dev/projects/game-karo/src/engine/graphics/tiles/DoorOpenTile.ts): Hereda de `BaseTile` y renderiza el umbral abierto.
+- [`KeyTile.ts`](file:///Users/lucas/dev/projects/game-karo/src/engine/graphics/tiles/KeyTile.ts): Hereda de `BaseTile` y renderiza la llave dorada.
+- [`CustomTile.ts`](file:///Users/lucas/dev/projects/game-karo/src/engine/graphics/tiles/CustomTile.ts): Permite instanciar tiles personalizados a partir de matrices de píxeles.
+- [`TileFactory.ts`](file:///Users/lucas/dev/projects/game-karo/src/engine/graphics/tiles/TileFactory.ts): Fábrica extensible con registro en tiempo de ejecución (`TileFactory.createTile('floor')`).
 
 ### El Canvas interno de texturas (`AssetManager.ts`):
-Al iniciar, `AssetManager` crea una textura en memoria de 128×192 píxeles dividida en celdas de 32×32:
+Al iniciar, `AssetManager` invoca a `TileFactory` para dibujar cada celda en el canvas de texturas de 128×192:
 
-```
-+------------+------------+------------+------------+
-| (0, 4)     | (1, 4)     | (2, 4)     | (3, 4)     |
-|   SUELO    |   PARED    | BORDE TOP  |   PILAR    |
-| (Cobble)   | (Fortress) |  (Shaded)  | (Gema azul)|
-+------------+------------+------------+------------+
-| (0, 5)     | (1, 5)     | (2, 5)     | (3, 5)     |
-|   PUERTA   |   PUERTA   |   LLAVE    |   VACÍO    |
-|  (Cerrada) |  (Abierta) |  (Dorada)  |            |
-+------------+------------+------------+------------+
-```
-
-En las líneas 95 a 198 de [`AssetManager.ts`](file:///Users/lucas/dev/projects/game-karo/src/engine/graphics/AssetManager.ts):
-- **Suelo (`floorSprite`)**: Dibuja adoquines oscuros con `ctx.strokeRect` y puntos de brillo (`#3d3c52`).
-- **Pared (`wallSprite`)**: Dibuja un bloque de piedra de fortaleza con sombras superiores e inferiores y líneas de ladrillo (`#4a4f5f`).
-- **Pilar (`pillarSprite`)**: Dibuja una columna circular con una gema azul brillante en el centro (`#38bdf8`).
-- **Puerta cerrada (`doorClosedSprite`)**: Dibuja tablones de madera con remaches de hierro y cerradura dorada.
-- **Puerta abierta (`doorOpenSprite`)**: Dibuja el marco con el pasaje oscuro abierto.
-- **Llave (`keySprite`)**: Dibuja el anillo, eje y dientes de una llave dorada brillante.
-
-Luego, en el método `sliceSprites()` (línea 313), se recortan en objetos `Sprite`:
 ```typescript
-this.floorSprite      = new Sprite(this.tilesheetCanvas, 0 * 32, 4 * 32, 32, 32);
-this.wallSprite       = new Sprite(this.tilesheetCanvas, 1 * 32, 4 * 32, 32, 32);
-this.pillarSprite     = new Sprite(this.tilesheetCanvas, 3 * 32, 4 * 32, 32, 32);
-this.doorClosedSprite = new Sprite(this.tilesheetCanvas, 0 * 5 * 32, 32, 32);
-this.doorOpenSprite   = new Sprite(this.tilesheetCanvas, 1 * 5 * 32, 32, 32);
-this.keySprite        = new Sprite(this.tilesheetCanvas, 2 * 5 * 32, 32, 32);
+// En AssetManager.generateSpritesheet():
+const s = this.tileSize;
+TileFactory.createTile('floor', s).draw(ctx, 0 * s, 4 * s);
+TileFactory.createTile('wall', s).draw(ctx, 1 * s, 4 * s);
+TileFactory.createTile('wallTop', s).draw(ctx, 2 * s, 4 * s);
+TileFactory.createTile('pillar', s).draw(ctx, 3 * s, 4 * s);
+TileFactory.createTile('doorClosed', s).draw(ctx, 0 * s, 5 * s);
+TileFactory.createTile('doorOpen', s).draw(ctx, 1 * s, 5 * s);
+TileFactory.createTile('key', s).draw(ctx, 2 * s, 5 * s);
 ```
+
+Luego, en `sliceSprites()`, se generan los objetos `Sprite` referenciados por el mapa y las entidades. Si en Tile Studio se usa **"⚡ Aplicar Ahora"**, el método `AssetManager.updateTileSprite(target, canvas)` muta la fuente gráfica del `Sprite` en caliente para que el cambio se refleje en vivo al instante sin recrear el mundo.
 
 ---
 

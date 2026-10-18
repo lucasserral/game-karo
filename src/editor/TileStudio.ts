@@ -835,7 +835,7 @@ export class TileStudio {
         sprite = am.floorSprite;
         break;
       case 'wall':
-        sprite = am.wallSprite;
+        sprite = am.testSprite;
         break;
       case 'wallTop':
         sprite = am.wallTopSprite;
@@ -890,7 +890,8 @@ export class TileStudio {
   }
 
   /**
-   * Generates compressed, clean TypeScript code ready to paste into AssetManager.ts
+   * Generates compressed, clean TypeScript code ready to paste into src/engine/graphics/tiles/
+   * or directly into the codebase using OOP inheritance (BaseTile).
    */
   public generateTypeScriptCode(): string {
     // 1. Check if background is mostly uniform
@@ -914,28 +915,29 @@ export class TileStudio {
     }
 
     const lines: string[] = [];
-    lines.push(`// ==============================================================`);
-    lines.push(`// Tile Personalizado (${this.width}x${this.height})`);
-    lines.push(`// Generado con Tile Studio (MS Paint XP Edition)`);
-    lines.push(`// ==============================================================`);
-    lines.push(`// Pega esta función dentro de AssetManager.ts o úsala directamente:`);
+    lines.push(`import { BaseTile } from './BaseTile.ts';`);
     lines.push(``);
-    lines.push(`export function drawCustomTile(ctx: CanvasRenderingContext2D, ox: number, oy: number): void {`);
-    lines.push(`  const pixel = (x: number, y: number, color: string, w = 1, h = 1): void => {`);
-    lines.push(`    ctx.fillStyle = color;`);
-    lines.push(`    ctx.fillRect(ox + x, oy + y, w, h);`);
-    lines.push(`  };`);
+    lines.push(`/**`);
+    lines.push(` * Tile Personalizado (${this.width}x${this.height}) generado con Tile Studio (MS Paint XP)`);
+    lines.push(` * Guarda este archivo en: src/engine/graphics/tiles/CustomTileGenerated.ts`);
+    lines.push(` * Y regístralo en TileFactory con:`);
+    lines.push(` *   TileFactory.registerTile('mi_tile', CustomTileGenerated);`);
+    lines.push(` */`);
+    lines.push(`export class CustomTileGenerated extends BaseTile {`);
+    lines.push(`  public readonly id = 'custom_${Date.now().toString().slice(-4)}';`);
+    lines.push(`  public readonly name = 'Tile Personalizado';`);
     lines.push(``);
+    lines.push(`  public draw(ctx: CanvasRenderingContext2D, ox: number, oy: number): void {`);
 
     // If dominant color covers > 40% of the tile, fill entire base first
     const hasBaseFill = dominantColor && maxCount > (this.width * this.height * 0.4);
     if (hasBaseFill) {
-      lines.push(`  // 1. Color base de fondo`);
-      lines.push(`  pixel(0, 0, '${dominantColor}', ${this.width}, ${this.height});`);
+      lines.push(`    // 1. Color base de fondo`);
+      lines.push(`    this.pixel(ctx, ox, oy, 0, 0, '${dominantColor}', this.size, this.size);`);
       lines.push(``);
-      lines.push(`  // 2. Detalles y píxeles`);
+      lines.push(`    // 2. Detalles y píxeles`);
     } else {
-      lines.push(`  // Píxeles del tile`);
+      lines.push(`    // Píxeles del tile`);
     }
 
     // Horizontal run-length grouping
@@ -955,15 +957,16 @@ export class TileStudio {
         }
 
         if (runLen > 1) {
-          lines.push(`  pixel(${x}, ${y}, '${color}', ${runLen}, 1);`);
+          lines.push(`    this.pixel(ctx, ox, oy, ${x}, ${y}, '${color}', ${runLen}, 1);`);
         } else {
-          lines.push(`  pixel(${x}, ${y}, '${color}');`);
+          lines.push(`    this.pixel(ctx, ox, oy, ${x}, ${y}, '${color}');`);
         }
 
         x += runLen;
       }
     }
 
+    lines.push(`  }`);
     lines.push(`}`);
     return lines.join('\n');
   }
@@ -978,7 +981,7 @@ export class TileStudio {
     const code = this.generateTypeScriptCode();
     try {
       await navigator.clipboard.writeText(code);
-      this.showToast('¡Código TypeScript copiado al portapapeles!');
+      this.showToast('¡Código TypeScript (Clase BaseTile) copiado al portapapeles!');
     } catch {
       this.codeOutput.select();
       document.execCommand('copy');
@@ -1036,6 +1039,7 @@ export class TileStudio {
 
   /**
    * Directly updates the active AssetManager instance with the edited tile in real time!
+   * Mutates the existing Sprite in-place so TileMap and all entities reflect it instantly.
    */
   public applyToLiveGame(): void {
     const targetSelect = this.container.querySelector('#xp-target-sprite') as HTMLSelectElement;
@@ -1063,13 +1067,12 @@ export class TileStudio {
       }
     }
 
-    const newSprite = new Sprite(offscreen, 0, 0, this.width, this.height);
     const am = AssetManager.getInstance();
+    // Update existing Sprite object in-place
+    am.updateTileSprite(targetProp, offscreen, this.width, this.height);
 
-    // Assign to asset manager
-    am[targetProp] = newSprite;
-
-    this.showToast(`⚡ ¡Sprite "${targetProp}" actualizado en vivo! Vuelve a la pestaña Juego.`);
+    const friendlyName = targetSelect.options[targetSelect.selectedIndex]?.text || targetProp;
+    this.showToast(`⚡ ¡${friendlyName} actualizado en vivo! Vuelve a la pestaña Juego.`);
   }
 
   private showToast(msg: string): void {
