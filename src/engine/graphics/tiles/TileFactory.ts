@@ -8,6 +8,15 @@ import { DoorOpenTile } from './DoorOpenTile.ts';
 import { KeyTile } from './KeyTile.ts';
 import { CustomTile } from './CustomTile.ts';
 import { TestTile } from './TestTile.ts';
+import { EstateWoodFloorTile } from './EstateWoodFloorTile.ts';
+import { EstateStonePathTile } from './EstateStonePathTile.ts';
+import { EstateHedgeTile } from './EstateHedgeTile.ts';
+import { EstateWaterTile } from './EstateWaterTile.ts';
+import { EstateSandTile } from './EstateSandTile.ts';
+import { EstateRugTile } from './EstateRugTile.ts';
+import { EstateWallTile } from './EstateWallTile.ts';
+import { EstateBookshelfTile } from './EstateBookshelfTile.ts';
+import { EstateFountainTile } from './EstateFountainTile.ts';
 
 export type BuiltinTileType =
   | 'floor'
@@ -16,7 +25,16 @@ export type BuiltinTileType =
   | 'pillar'
   | 'doorClosed'
   | 'doorOpen'
-  | 'key';
+  | 'key'
+  | 'estate_wood_floor'
+  | 'estate_stone_path'
+  | 'estate_hedge'
+  | 'estate_water'
+  | 'estate_sand'
+  | 'estate_rug'
+  | 'estate_wall'
+  | 'estate_bookshelf'
+  | 'estate_fountain';
 
 export type TileType = BuiltinTileType | 'custom' | string;
 
@@ -40,6 +58,17 @@ export class TileFactory {
     TileFactory.registerTile('doorOpen', DoorOpenTile);
     TileFactory.registerTile('key', KeyTile);
     TileFactory.registerTile('test', TestTile);
+
+    // Tiles específicos de la Mansión y Jardines (map-expectation)
+    TileFactory.registerTile('estate_wood_floor', EstateWoodFloorTile);
+    TileFactory.registerTile('estate_stone_path', EstateStonePathTile);
+    TileFactory.registerTile('estate_hedge', EstateHedgeTile);
+    TileFactory.registerTile('estate_water', EstateWaterTile);
+    TileFactory.registerTile('estate_sand', EstateSandTile);
+    TileFactory.registerTile('estate_rug', EstateRugTile);
+    TileFactory.registerTile('estate_wall', EstateWallTile);
+    TileFactory.registerTile('estate_bookshelf', EstateBookshelfTile);
+    TileFactory.registerTile('estate_fountain', EstateFountainTile);
   }
 
   /**
@@ -72,16 +101,12 @@ export class TileFactory {
   /**
    * Crea un mapa con todas las instancias de tiles estándar registradas.
    */
-  public static createAllStandard(size = 32): Record<BuiltinTileType, BaseTile> {
-    return {
-      floor: TileFactory.createTile('floor', size),
-      wall: TileFactory.createTile('wall', size),
-      wallTop: TileFactory.createTile('wallTop', size),
-      pillar: TileFactory.createTile('pillar', size),
-      doorClosed: TileFactory.createTile('doorClosed', size),
-      doorOpen: TileFactory.createTile('doorOpen', size),
-      key: TileFactory.createTile('key', size),
-    };
+  public static createAllStandard(size = 32): Record<string, BaseTile> {
+    const all: Record<string, BaseTile> = {};
+    for (const [key, constructor] of TileFactory.registry.entries()) {
+      all[key] = new constructor(size);
+    }
+    return all;
   }
 
   /**

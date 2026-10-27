@@ -24,6 +24,17 @@ export class AssetManager {
   public pillarSprite!: Sprite;
   public testSprite!: Sprite;
 
+  // Estate Map Sprites (map-expectation)
+  public estateWoodFloorSprite!: Sprite;
+  public estateStonePathSprite!: Sprite;
+  public estateHedgeSprite!: Sprite;
+  public estateWaterSprite!: Sprite;
+  public estateSandSprite!: Sprite;
+  public estateRugSprite!: Sprite;
+  public estateWallSprite!: Sprite;
+  public estateBookshelfSprite!: Sprite;
+  public estateFountainSprite!: Sprite;
+
   // Cached player sprite frames
   private playerFrames: Record<string, Sprite[]> = {};
 
@@ -225,6 +236,17 @@ export class AssetManager {
     this.doorOpenSprite = new Sprite(this.tilesheetCanvas, 1 * s, 5 * s, s, s);
     this.keySprite = new Sprite(this.tilesheetCanvas, 2 * s, 5 * s, s, s);
 
+    // Estate Map Sprites
+    this.estateWoodFloorSprite = TileFactory.createTile('estate_wood_floor', s).toSprite();
+    this.estateStonePathSprite = TileFactory.createTile('estate_stone_path', s).toSprite();
+    this.estateHedgeSprite = TileFactory.createTile('estate_hedge', s).toSprite();
+    this.estateWaterSprite = TileFactory.createTile('estate_water', s).toSprite();
+    this.estateSandSprite = TileFactory.createTile('estate_sand', s).toSprite();
+    this.estateRugSprite = TileFactory.createTile('estate_rug', s).toSprite();
+    this.estateWallSprite = TileFactory.createTile('estate_wall', s).toSprite();
+    this.estateBookshelfSprite = TileFactory.createTile('estate_bookshelf', s).toSprite();
+    this.estateFountainSprite = TileFactory.createTile('estate_fountain', s).toSprite();
+
     // Player Directional Frames
     const directions = ['down', 'up', 'left', 'right'] as const;
     directions.forEach((dir, rowIndex) => {
@@ -316,7 +338,25 @@ export class AssetManager {
       console.log(`Tileset cargado exitosamente desde ${url}`);
     } catch (err) {
       console.warn(`No se encontró tileset en ${url}, manteniendo gráficos generados.`, err);
-    }
+  public estateMapImage: HTMLImageElement | null = null;
+
+  /**
+   * Carga la imagen de alta definición del mapa de la finca (map-expectation).
+   */
+  public async loadEstateMap(url = '/maps/estate-map.webp'): Promise<HTMLImageElement> {
+    const img = new Image();
+    img.src = url;
+    await new Promise<void>((resolve, reject) => {
+      img.onload = () => resolve();
+      img.onerror = () => {
+        // Intento de respaldo con formato PNG
+        img.src = '/maps/estate-map.png';
+        img.onload = () => resolve();
+        img.onerror = (e) => reject(new Error(`No se pudo cargar la imagen del mapa en ${url}: ${e}`));
+      };
+    });
+    this.estateMapImage = img;
+    return img;
   }
 
   /**

@@ -165,13 +165,26 @@ export class TileStudio {
           <div class="xp-menu-item">
             <label for="xp-preset-select"><strong>Cargar Tile Existente:</strong></label>
             <select id="xp-preset-select" class="xp-select">
-              <option value="floor">🧱 Suelo de Mazmorra (Floor)</option>
-              <option value="wall">🧱 Pared de Fortaleza (Wall)</option>
-              <option value="wallTop">🧱 Techo de Pared (Wall Top)</option>
-              <option value="pillar">🏛️ Pilar con Gema (Pillar)</option>
-              <option value="doorClosed">🚪 Puerta Cerrada (Door Closed)</option>
-              <option value="doorOpen">🚪 Puerta Abierta (Door Open)</option>
-              <option value="key">🗝️ Llave Dorada (Golden Key)</option>
+              <optgroup label="🏰 Mazmorra Básica">
+                <option value="floor">🧱 Suelo de Mazmorra (Floor)</option>
+                <option value="wall">🧱 Pared de Fortaleza (Wall)</option>
+                <option value="wallTop">🧱 Techo de Pared (Wall Top)</option>
+                <option value="pillar">🏛️ Pilar con Gema (Pillar)</option>
+                <option value="doorClosed">🚪 Puerta Cerrada (Door Closed)</option>
+                <option value="doorOpen">🚪 Puerta Abierta (Door Open)</option>
+                <option value="key">🗝️ Llave Dorada (Golden Key)</option>
+              </optgroup>
+              <optgroup label="🏡 Mansión y Jardines (map-expectation)">
+                <option value="estate_wood_floor">🪵 Suelo de Madera de Mansión</option>
+                <option value="estate_stone_path">🪨 Sendero de Piedra y Césped</option>
+                <option value="estate_hedge">🌿 Seto de Boj Recortado</option>
+                <option value="estate_water">🪷 Agua de Estanque con Loto</option>
+                <option value="estate_sand">🏖️ Arena de Playa Costera</option>
+                <option value="estate_rug">🌸 Alfombra Ornamental Rosa</option>
+                <option value="estate_wall">🏰 Muro de Piedra y Roble</option>
+                <option value="estate_bookshelf">📚 Librería de Caoba</option>
+                <option value="estate_fountain">⛲ Fuente de Agua de Piedra</option>
+              </optgroup>
               <option value="blank">✨ Lienzo Vacío (32x32)</option>
             </select>
           </div>
@@ -851,6 +864,33 @@ export class TileStudio {
         break;
       case 'key':
         sprite = am.keySprite;
+        break;
+      case 'estate_wood_floor':
+        sprite = am.estateWoodFloorSprite;
+        break;
+      case 'estate_stone_path':
+        sprite = am.estateStonePathSprite;
+        break;
+      case 'estate_hedge':
+        sprite = am.estateHedgeSprite;
+        break;
+      case 'estate_water':
+        sprite = am.estateWaterSprite;
+        break;
+      case 'estate_sand':
+        sprite = am.estateSandSprite;
+        break;
+      case 'estate_rug':
+        sprite = am.estateRugSprite;
+        break;
+      case 'estate_wall':
+        sprite = am.estateWallSprite;
+        break;
+      case 'estate_bookshelf':
+        sprite = am.estateBookshelfSprite;
+        break;
+      case 'estate_fountain':
+        sprite = am.estateFountainSprite;
         break;
     }
 
