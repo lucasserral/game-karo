@@ -4,19 +4,20 @@ import type { ICollidable } from '../core/ICollidable.ts';
 import type { Sprite } from '../graphics/Sprite.ts';
 import type { Camera } from '../core/Camera.ts';
 
-export type ObstacleType = 'wall' | 'pillar';
+export type ObstacleType = 'wall' | 'pillar' | 'hedge' | 'water' | 'boundary' | 'furniture';
 
 /**
  * Static physical barrier that prevents actors from passing through (passive collision).
+ * Can render an explicit Sprite or function as an invisible scene collider.
  */
 export class StaticObstacle extends GameObject implements ICollidable {
-  private sprite: Sprite;
+  private sprite: Sprite | null;
   public readonly obstacleType: ObstacleType;
 
   constructor(
     x: number,
     y: number,
-    sprite: Sprite,
+    sprite: Sprite | null = null,
     type: ObstacleType = 'wall',
     width = 32,
     height = 32
@@ -40,12 +41,14 @@ export class StaticObstacle extends GameObject implements ICollidable {
   }
 
   public override render(ctx: CanvasRenderingContext2D, _camera: Camera): void {
-    this.sprite.draw(
-      ctx,
-      Math.floor(this.position.x),
-      Math.floor(this.position.y),
-      this.size.x,
-      this.size.y
-    );
+    if (this.sprite) {
+      this.sprite.draw(
+        ctx,
+        Math.floor(this.position.x),
+        Math.floor(this.position.y),
+        this.size.x,
+        this.size.y
+      );
+    }
   }
 }

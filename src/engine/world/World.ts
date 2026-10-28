@@ -5,15 +5,20 @@ import { isCollidable } from '../core/ICollidable.ts';
 import { isInteractive, type IInteractive } from '../core/IInteractive.ts';
 import type { TileMap } from './TileMap.ts';
 import type { Camera } from '../core/Camera.ts';
+import type { CollisionMask } from './CollisionMask.ts';
+import type { BoundingBox } from '../math/BoundingBox.ts';
 
 /**
- * World maintains the active scene, handles decoupled physical collisions,
+ * World maintains the active scene, handles decoupled physical collisions
+ * via both the pixel-perfect CollisionMask and dynamic entities,
  * manages entity lifecycles, and performs depth-sorted rendering.
  */
 export class World {
   public entities: GameObject[] = [];
   public player: Player;
   public tileMap: TileMap;
+  public collisionMask: CollisionMask | null = null;
+  public showCollisionDebug = false;
 
   constructor(tileMap: TileMap, player: Player) {
     this.tileMap = tileMap;
@@ -57,8 +62,23 @@ export class World {
   }
 
   /**
+   * Comprueba si una caja de colisión intersecta alguna entidad sólida activa (como puertas cerradas).
+   */
+  private checkSolidEntityCollision(actor: Actor, box: BoundingBox): boolean {
+    for (const other of this.entities) {
+      if (other === actor || other.isDestroyed || !isCollidable(other)) {
+        continue;
+      }
+      if (other.isSolid() && box.intersects(other.getCollider())) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
    * Resolves physical collision with decoupled X and Y axis testing.
-   * This guarantees smooth wall sliding when moving diagonally into obstacles.
+   * Guarantees smooth wall sliding and pixel-flush positioning using the CollisionMask.
    */
   private resolveActorMovement(actor: Actor, dt: number): void {
     const dx = actor.velocity.x * dt;
@@ -70,28 +90,46 @@ export class World {
 
     // --- 1. X-AXIS MOVEMENT ---
     if (dx !== 0) {
+      const prevX = actor.position.x;
       actor.position.x += dx;
       const currentBox = actor.getCollider();
 
-      for (const other of this.entities) {
-        if (other === actor || other.isDestroyed || !isCollidable(other)) {
-          continue;
-        }
+      let collided = false;
 
-        const otherBox = other.getCollider();
-        if (currentBox.intersects(otherBox)) {
-          // Trigger collision hook
-          if (other.onCollision) {
-            other.onCollision(actor, dx > 0 ? -1 : 1, 0);
-          }
+      // 1a. Comprobación contra la Máscara de Colisión de la imagen
+      if (this.collisionMask && this.collisionMask.checkAABBCollision(currentBox)) {
+        collided = true;
+      }
 
-          // Impenetrable obstacle resolution
-          if (other.isSolid()) {
-            if (dx > 0) {
-              actor.position.x = otherBox.left - actor.colliderOffset.x - actor.colliderSize.x;
-            } else {
-              actor.position.x = otherBox.right - actor.colliderOffset.x;
+      // 1b. Comprobación contra entidades colisionables (puertas cerradas, cofres, etc.)
+      if (!collided) {
+        for (const other of this.entities) {
+          if (other === actor || other.isDestroyed || !isCollidable(other)) continue;
+          const otherBox = other.getCollider();
+          if (currentBox.intersects(otherBox)) {
+            if (other.onCollision) other.onCollision(actor, dx > 0 ? -1 : 1, 0);
+            if (other.isSolid()) {
+              collided = true;
+              break;
             }
+          }
+        }
+      }
+
+      // 1c. Si colisionó, ajustar al píxel exacto contra la pared para deslizamiento perfecto
+      if (collided) {
+        actor.position.x = prevX;
+        const step = Math.sign(dx);
+        const maxSteps = Math.ceil(Math.abs(dx));
+        for (let s = 0; s < maxSteps; s++) {
+          actor.position.x += step;
+          const box = actor.getCollider();
+          const hit =
+            (this.collisionMask && this.collisionMask.checkAABBCollision(box)) ||
+            this.checkSolidEntityCollision(actor, box);
+          if (hit) {
+            actor.position.x -= step;
+            break;
           }
         }
       }
@@ -99,28 +137,46 @@ export class World {
 
     // --- 2. Y-AXIS MOVEMENT ---
     if (dy !== 0) {
+      const prevY = actor.position.y;
       actor.position.y += dy;
       const currentBox = actor.getCollider();
 
-      for (const other of this.entities) {
-        if (other === actor || other.isDestroyed || !isCollidable(other)) {
-          continue;
-        }
+      let collided = false;
 
-        const otherBox = other.getCollider();
-        if (currentBox.intersects(otherBox)) {
-          // Trigger collision hook
-          if (other.onCollision) {
-            other.onCollision(actor, 0, dy > 0 ? -1 : 1);
-          }
+      // 2a. Comprobación contra la Máscara de Colisión de la imagen
+      if (this.collisionMask && this.collisionMask.checkAABBCollision(currentBox)) {
+        collided = true;
+      }
 
-          // Impenetrable obstacle resolution
-          if (other.isSolid()) {
-            if (dy > 0) {
-              actor.position.y = otherBox.top - actor.colliderOffset.y - actor.colliderSize.y;
-            } else {
-              actor.position.y = otherBox.bottom - actor.colliderOffset.y;
+      // 2b. Comprobación contra entidades colisionables
+      if (!collided) {
+        for (const other of this.entities) {
+          if (other === actor || other.isDestroyed || !isCollidable(other)) continue;
+          const otherBox = other.getCollider();
+          if (currentBox.intersects(otherBox)) {
+            if (other.onCollision) other.onCollision(actor, 0, dy > 0 ? -1 : 1);
+            if (other.isSolid()) {
+              collided = true;
+              break;
             }
+          }
+        }
+      }
+
+      // 2c. Si colisionó, ajustar al píxel exacto contra la pared
+      if (collided) {
+        actor.position.y = prevY;
+        const step = Math.sign(dy);
+        const maxSteps = Math.ceil(Math.abs(dy));
+        for (let s = 0; s < maxSteps; s++) {
+          actor.position.y += step;
+          const box = actor.getCollider();
+          const hit =
+            (this.collisionMask && this.collisionMask.checkAABBCollision(box)) ||
+            this.checkSolidEntityCollision(actor, box);
+          if (hit) {
+            actor.position.y -= step;
+            break;
           }
         }
       }
@@ -153,7 +209,7 @@ export class World {
   }
 
   public render(ctx: CanvasRenderingContext2D, camera: Camera): void {
-    // 1. Render floor tiles
+    // 1. Render floor tiles o mapa ilustrado de fondo
     this.tileMap.render(ctx, camera);
 
     // 2. Frustum culling: filter entities in view
@@ -172,6 +228,11 @@ export class World {
     // 4. Polymorphic render calls
     for (const entity of visibleEntities) {
       entity.render(ctx, camera);
+    }
+
+    // 5. Superposición visual de depuración de máscara si está activa
+    if (this.showCollisionDebug && this.collisionMask) {
+      this.collisionMask.renderDebug(ctx, camera);
     }
   }
 }

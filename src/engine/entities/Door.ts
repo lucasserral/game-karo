@@ -7,35 +7,37 @@ import type { Camera } from '../core/Camera.ts';
 import { Player } from './Player.ts';
 
 /**
- * Door demonstrates both passive actions (solid obstacle when closed)
- * and active actions (unlocks and opens when interacted with the matching key).
+ * Door: Puerta o verja con cerrojo que bloquea el paso hasta que el jugador
+ * interactúa teniendo la llave correspondiente.
  */
 export class Door extends GameObject implements ICollidable, IInteractive {
   public isUnlocked = false;
   public readonly requiredKeyId: string;
-  public readonly interactionRadius = 48; // Interaction trigger distance in pixels
+  public readonly doorName: string;
+  public readonly interactionRadius = 52;
 
-  private closedSprite: Sprite;
-  private openSprite: Sprite;
+  private closedSprite: Sprite | null;
+  private openSprite: Sprite | null;
 
   constructor(
     x: number,
     y: number,
-    closedSprite: Sprite,
-    openSprite: Sprite,
+    closedSprite: Sprite | null = null,
+    openSprite: Sprite | null = null,
     requiredKeyId = 'golden_key',
     width = 32,
-    height = 32
+    height = 32,
+    doorName = 'Puerta'
   ) {
     super(x, y, width, height, 6);
     this.closedSprite = closedSprite;
     this.openSprite = openSprite;
     this.requiredKeyId = requiredKeyId;
+    this.doorName = doorName;
   }
 
-  // --- ICollidable (Passive action) ---
+  // --- ICollidable ---
   public isSolid(): boolean {
-    // Only solid (blocks player) if not yet unlocked/opened
     return !this.isUnlocked;
   }
 
@@ -43,7 +45,7 @@ export class Door extends GameObject implements ICollidable, IInteractive {
     return new BoundingBox(this.position.x, this.position.y, this.size.x, this.size.y);
   }
 
-  // --- IInteractive (Active action) ---
+  // --- IInteractive ---
   public canInteract(initiator: GameObject): boolean {
     if (this.isUnlocked) {
       return false;
@@ -64,18 +66,18 @@ export class Door extends GameObject implements ICollidable, IInteractive {
     if (initiator.hasKey(this.requiredKeyId)) {
       initiator.consumeKey(this.requiredKeyId);
       this.isUnlocked = true;
-      initiator.setNotification('¡Puerta desbloqueada y abierta!');
+      initiator.setNotification(`🔓 ¡${this.doorName} desbloqueada y abierta!`, 3.5);
       return {
         success: true,
-        message: '¡Has usado la llave para abrir la puerta!',
+        message: `¡Has usado la llave para abrir la ${this.doorName}!`,
         consumedItem: this.requiredKeyId,
       };
     }
 
-    initiator.setNotification('Está cerrada con llave. ¡Búscala en el mapa!');
+    initiator.setNotification(`🔒 La ${this.doorName} está cerrada con llave. ¡Búscala en la finca!`, 3.5);
     return {
       success: false,
-      message: 'Necesitas una llave para abrir esta puerta.',
+      message: `Necesitas una llave para abrir la ${this.doorName}.`,
     };
   }
 
@@ -85,21 +87,56 @@ export class Door extends GameObject implements ICollidable, IInteractive {
     }
 
     if (initiator instanceof Player && initiator.hasKey(this.requiredKeyId)) {
-      return '[E] Abrir puerta con Llave';
+      return `🔓 [E] Abrir ${this.doorName} con Llave`;
     }
 
-    return '🔒 Puerta cerrada (Requiere Llave)';
+    return `🔒 ${this.doorName} cerrada (Requiere Llave)`;
   }
 
-  public override update(_dt: number): void {
-    // State is driven by interactions
-  }
+  public override update(_dt: number): void {}
 
   public override render(ctx: CanvasRenderingContext2D, _camera: Camera): void {
     const x = Math.floor(this.position.x);
     const y = Math.floor(this.position.y);
-    const sprite = this.isUnlocked ? this.openSprite : this.closedSprite;
+    const w = this.size.x;
+    const h = this.size.y;
 
-    sprite.draw(ctx, x, y, this.size.x, this.size.y);
+    if (this.closedSprite && this.openSprite) {
+      const sprite = this.isUnlocked ? this.openSprite : this.closedSprite;
+      sprite.draw(ctx, x, y, w, h);
+      return;
+    }
+
+    // Dibujo procedural estilizado de la puerta
+    ctx.save();
+    if (!this.isUnlocked) {
+      // Puerta cerrada: marco y tablones de madera
+      ctx.fillStyle = '#452613';
+      ctx.fillRect(x, y, w, h);
+      ctx.fillStyle = '#784323';
+      ctx.fillRect(x + 2, y + 2, w - 4, h - 4);
+
+      // Tablones
+      ctx.fillStyle = '#5c3218';
+      ctx.fillRect(x + w / 2 - 1, y + 2, 2, h - 4);
+
+      // Pomo dorado brillante
+      ctx.fillStyle = '#fde047';
+      ctx.beginPath();
+      ctx.arc(x + w - 6, y + h / 2, 2.5, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Cerradura
+      ctx.fillStyle = '#1e1b18';
+      ctx.fillRect(x + w - 7, y + h / 2 + 3, 2, 3);
+    } else {
+      // Puerta abierta: umbral libre con hoja entreabierta
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+      ctx.fillRect(x, y, w, h);
+      // Hoja girada hacia un lado
+      ctx.fillStyle = '#784323';
+      ctx.fillRect(x + 1, y + 1, 4, h - 2);
+    }
+    ctx.restore();
   }
 }

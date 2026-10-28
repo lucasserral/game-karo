@@ -2,6 +2,7 @@ import { Sprite } from './Sprite.ts';
 import { AnimatedSprite } from './AnimatedSprite.ts';
 import { SpriteSheet } from './SpriteSheet.ts';
 import { TileFactory } from './tiles/index.ts';
+import { CollisionMask } from '../world/CollisionMask.ts';
 
 /**
  * AssetManager creates and stores sprites, tiles, and animations.
@@ -338,7 +339,11 @@ export class AssetManager {
       console.log(`Tileset cargado exitosamente desde ${url}`);
     } catch (err) {
       console.warn(`No se encontró tileset en ${url}, manteniendo gráficos generados.`, err);
+    }
+  }
+
   public estateMapImage: HTMLImageElement | null = null;
+  public collisionMaskImage: HTMLImageElement | null = null;
 
   /**
    * Carga la imagen de alta definición del mapa de la finca (map-expectation).
@@ -357,6 +362,31 @@ export class AssetManager {
     });
     this.estateMapImage = img;
     return img;
+  }
+
+  /**
+   * Carga la imagen de máscara de colisión (blanco = transitable, negro = obstáculo).
+   */
+  public async loadCollisionMask(url = '/maps/estate-collision.png'): Promise<HTMLImageElement> {
+    const img = new Image();
+    img.src = url;
+    await new Promise<void>((resolve, reject) => {
+      img.onload = () => resolve();
+      img.onerror = (e) => reject(new Error(`No se pudo cargar la máscara de colisión en ${url}: ${e}`));
+    });
+    this.collisionMaskImage = img;
+    return img;
+  }
+
+  /**
+   * Crea una instancia de CollisionMask a partir de la imagen cargada.
+   */
+  public createCollisionMask(width = 1600, height = 1066): CollisionMask | null {
+    if (!this.collisionMaskImage) {
+      console.warn('No hay imagen de máscara de colisión cargada.');
+      return null;
+    }
+    return CollisionMask.fromImage(this.collisionMaskImage, width, height);
   }
 
   /**

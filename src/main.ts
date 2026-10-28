@@ -10,24 +10,26 @@ window.addEventListener('DOMContentLoaded', async () => {
     throw new Error('Canvas element #game-canvas not found.');
   }
 
-  // 1. Preload sprites (hero walking, optional idle pose, optional custom tileset)
+  // 1. Preload assets (hero sprites, custom tileset, and the estate map)
   try {
     await AssetManager.getInstance().loadHeroSpriteSheet('/sprites/hero.png');
     await AssetManager.getInstance().loadHeroIdleSprite('/sprites/hero-idle.png');
     await AssetManager.getInstance().loadCustomTileset('/sprites/tileset.png');
+    await AssetManager.getInstance().loadEstateMap('/maps/estate-map.webp');
+    await AssetManager.getInstance().loadCollisionMask('/maps/estate-collision.png');
     console.log('Game assets loaded successfully.');
   } catch (err) {
     console.warn('Using procedural fallbacks for missing assets:', err);
   }
 
-  // 2. Initialize Game Engine with 2.2x pixel-art zoom
+  // 2. Initialize Game Engine with 1.85x pixel-art zoom for the grand 1600x1066 estate
   const engine = new GameEngine({
     canvas,
-    zoom: 2.2,
+    zoom: 1.85,
   });
 
-  // 3. Build demo world with walls, pillars, player, key, and locked door
-  const world = LevelBuilder.buildDemoWorld(engine.input);
+  // 3. Build the estate world matching map-expectation.jpeg
+  const world = LevelBuilder.buildEstateWorld(engine.input);
   engine.setWorld(world);
 
   // 4. Start RAF loop
@@ -36,22 +38,66 @@ window.addEventListener('DOMContentLoaded', async () => {
   // 5. Auto-focus canvas so user can play immediately with WASD
   canvas.focus();
 
-  // 6. Wire DOM HUD elements (FPS counter and Inventory Slot)
+  // Alternar visualización de la máscara de colisión (tecla M o botón)
+  const btnToggleMask = document.getElementById('btn-toggle-mask');
+  const toggleMask = (): void => {
+    world.showCollisionDebug = !world.showCollisionDebug;
+    if (btnToggleMask) {
+      if (world.showCollisionDebug) {
+        btnToggleMask.style.background = '#ef4444';
+        btnToggleMask.style.borderColor = '#fca5a5';
+        btnToggleMask.style.color = '#ffffff';
+      } else {
+        btnToggleMask.style.background = '#0f172a';
+        btnToggleMask.style.borderColor = '#38bdf8';
+        btnToggleMask.style.color = '#38bdf8';
+      }
+    }
+  };
+
+  btnToggleMask?.addEventListener('click', toggleMask);
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'm' || e.key === 'M') {
+      toggleMask();
+    }
+  });
+
+  // 6. Wire DOM HUD elements (FPS counter and Dynamic Inventory)
   const fpsBadge = document.getElementById('fps-badge');
-  const slotKey = document.getElementById('slot-key');
+  const inventoryDisplay = document.getElementById('inventory-display');
 
   let frameCount = 0;
   let lastFpsUpdate = performance.now();
 
+  const keyLabels: Record<string, { label: string; icon: string }> = {
+    golden_key: { label: 'Llave Dorada', icon: '🗝️' },
+    iron_key: { label: 'Llave de Hierro', icon: '🗝️' },
+    crystal_key: { label: 'Llave de Cristal', icon: '💎' },
+  };
+
   const updateHUD = (): void => {
     // Inventory update
-    if (slotKey) {
-      if (world.player.hasKey('golden_key')) {
-        slotKey.className = 'inventory-slot has-key';
-        slotKey.innerHTML = '<span class="slot-icon">🗝️</span><span class="slot-label">Llave Dorada</span>';
+    if (inventoryDisplay) {
+      const keys = Array.from(world.player.inventoryKeys);
+      if (keys.length === 0) {
+        inventoryDisplay.innerHTML = `
+          <div class="inventory-slot empty" id="slot-key" title="Ranura de Llave">
+            <span class="slot-icon">🗝️</span>
+            <span class="slot-label">Sin Llaves</span>
+          </div>
+        `;
       } else {
-        slotKey.className = 'inventory-slot empty';
-        slotKey.innerHTML = '<span class="slot-icon">🗝️</span><span class="slot-label">Sin Llave</span>';
+        inventoryDisplay.innerHTML = keys
+          .map((k) => {
+            const info = keyLabels[k] || { label: k, icon: '🗝️' };
+            return `
+            <div class="inventory-slot has-key" title="${info.label}">
+              <span class="slot-icon">${info.icon}</span>
+              <span class="slot-label">${info.label}</span>
+            </div>
+          `;
+          })
+          .join('');
       }
     }
 
@@ -117,4 +163,3 @@ window.addEventListener('DOMContentLoaded', async () => {
   tabGame?.addEventListener('click', () => switchTab('game'));
   tabPaint?.addEventListener('click', () => switchTab('paint'));
 });
-

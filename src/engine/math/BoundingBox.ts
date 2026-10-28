@@ -28,6 +28,14 @@ export class BoundingBox {
     return this.position.y + this.size.y;
   }
 
+  public get width(): number {
+    return this.size.x;
+  }
+
+  public get height(): number {
+    return this.size.y;
+  }
+
   public get centerX(): number {
     return this.position.x + this.size.x / 2;
   }

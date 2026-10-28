@@ -24,7 +24,7 @@
             <span class="logo-icon">🎮</span>
             <div class="logo-text">
               <h1>K-Engine 2D</h1>
-              <span class="subtitle">Motor de Videojuegos • Iteración 1</span>
+              <span class="subtitle">Mansión de Karo • Jardines de Agua & Costa</span>
             </div>
           </div>
         </div>
@@ -72,10 +72,13 @@
               </div>
 
               <div class="toolbar-section interaction-hint">
-                <span class="section-label">Acción Activa:</span>
+                <span class="section-label">Acción:</span>
                 <div class="key-group">
                   <kbd class="key-badge key-action">E</kbd>
-                  <span class="hint-text">/ <kbd class="key-badge key-action">Espacio</kbd> Interactuar</span>
+                  <span class="hint-text">Interactuar</span>
+                  <button id="btn-toggle-mask" class="key-badge" style="cursor: pointer; border: 1px solid #38bdf8; background: #0f172a; color: #38bdf8; margin-left: 6px; font-weight: 600;" title="Ver u ocultar máscara de colisión (Tecla M)">
+                    🗺️ [M] Máscara
+                  </button>
                 </div>
               </div>
 
@@ -84,7 +87,7 @@
                 <div class="inventory-slots" id="inventory-display">
                   <div class="inventory-slot empty" id="slot-key" title="Ranura de Llave">
                     <span class="slot-icon">🗝️</span>
-                    <span class="slot-label">Sin Llave</span>
+                    <span class="slot-label">Sin Llaves</span>
                   </div>
                 </div>
               </div>
@@ -94,40 +97,41 @@
           <!-- Sidebar / Inspection Panel -->
           <aside class="features-sidebar">
             <section class="panel-card">
-              <h3>🏗️ Arquitectura POO Implementada</h3>
+              <h3>🏡 Mansión & Finca Karo (POO)</h3>
               <ul class="feature-list">
                 <li>
-                  <strong>Herencia & Polimorfismo:</strong>
-                  <code>GameObject</code> clase base abstracta con <code>Actor</code>, <code>StaticObstacle</code>, <code>Door</code> y <code>KeyItem</code>.
+                  <strong>Mapa Completo (1600×1066):</strong>
+                  Renderizado optimizado con <em>frustum culling</em> centrado en la mansión y exteriores.
                 </li>
                 <li>
-                  <strong>Acción Pasiva:</strong>
-                  <code>ICollidable</code> con AABB desacoplada en X/Y para bloqueo y deslizamiento fluido en paredes.
+                  <strong>Objetos Vivos y Animados:</strong>
+                  <code>WaterFountain</code> con ondas y deseos, <code>Fireplace</code> con fuego y ascuas, y <code>BeachShore</code> con oleaje.
                 </li>
                 <li>
-                  <strong>Acción Activa:</strong>
-                  <code>IInteractive</code> para interacción contextual de puertas con cerrojo y llaves.
+                  <strong>Puente sobre el Lago:</strong>
+                  <code>Footbridge</code> transitable con colisiones en barandillas y profundidad 2.5D.
                 </li>
                 <li>
-                  <strong>Cámara Cenital:</strong>
-                  Seguimiento suave (<em>lerp</em>) centrado en el jugador con delimitación al mundo visible.
+                  <strong>Partículas Ambientales:</strong>
+                  <code>NatureParticleSystem</code> con pétalos y hojas flotando suavemente con la brisa.
                 </li>
                 <li>
-                  <strong>Sprites & Animación:</strong>
-                  Ciclos de caminata y reposo en 4 direcciones (arriba, abajo, izquierda, derecha) con renderizado pixel art nítido.
+                  <strong>Interactividad Completa:</strong>
+                  Fogón con sopa caliente, camas para descansar, librerías con crónicas y cofre del tesoro.
                 </li>
                 <li>
-                  <strong>Tile Studio Integrado:</strong>
-                  Pestaña para pintar tiles estilo MS Paint XP y copiar el código generado directamente al motor.
+                  <strong>9 Nuevos Tiles en Tile Studio:</strong>
+                  Suelo de madera, sendero de piedra, seto de boj, agua con loto, arena costera, alfombra, muro, librería y fuente.
                 </li>
               </ul>
             </section>
 
             <section class="panel-card mission-card">
-              <h3>🎯 Misión del Jugador</h3>
-              <p>1. Explora el laberinto utilizando <kbd>WASD</kbd>.</p>
-              <p>2. Localiza la <strong>Llave Dorada</strong> en la cámara norte.</p>
-              <p>3. Abre la <strong>Puerta Cerrada</strong> con <kbd>E</kbd> para acceder a la sala secreta.</p>
+              <h3>🎯 Misiones de la Finca</h3>
+              <p>1. ⛲ Pide un deseo en la <strong>Fuente de Agua</strong> del jardín central con <kbd>E</kbd>.</p>
+              <p>2. 🗝️ Encuentra las <strong>3 Llaves Ocultas</strong>: Dorada (Estudio), Hierro (Cocina) y Cristal (Estanque).</p>
+              <p>3. 🌉 Cruza el <strong>Puente de Madera</strong> sobre el estanque hasta la costa oriental.</p>
+              <p>4. 💎 Abre la verja del <strong>Jardín Secreto</strong> y desbloquea el Cofre del Tesoro.</p>
             </section>
           </aside>
         </main>
