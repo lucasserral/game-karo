@@ -19,6 +19,7 @@ export class World {
   public tileMap: TileMap;
   public collisionMask: CollisionMask | null = null;
   public showCollisionDebug = false;
+  public showEntityDebug = true;
 
   constructor(tileMap: TileMap, player: Player) {
     this.tileMap = tileMap;
@@ -234,5 +235,107 @@ export class World {
     if (this.showCollisionDebug && this.collisionMask) {
       this.collisionMask.renderDebug(ctx, camera);
     }
+
+    // 6. Bordes rojos e indicadores de tipo para objetos/entidades que no son la máscara
+    if (this.showEntityDebug) {
+      this.renderEntityDebug(ctx, visibleEntities);
+    }
+  }
+
+  /**
+   * Dibuja un borde rojo fino alrededor de los objetos interactivos y un cartel
+   * con el nombre/tipo de objeto para depuración visual.
+   */
+  private renderEntityDebug(ctx: CanvasRenderingContext2D, visibleEntities: GameObject[]): void {
+    ctx.save();
+    ctx.font = 'bold 10px "Outfit", system-ui, sans-serif';
+    ctx.textBaseline = 'middle';
+
+    for (const entity of visibleEntities) {
+      if (entity.isDestroyed) continue;
+
+      // Omitir sistemas globales que abarcan todo el mapa
+      if (entity.size.x >= this.tileMap.worldWidth && entity.size.y >= this.tileMap.worldHeight) {
+        continue;
+      }
+
+      // Obtener el collider exacto si es colisionable, o su bounding box
+      const box = isCollidable(entity) ? entity.getCollider() : entity.getBounds();
+      const x = Math.floor(box.left);
+      const y = Math.floor(box.top);
+      const w = Math.floor(box.width);
+      const h = Math.floor(box.height);
+
+      // 1. Borde fino rojo (#ef4444)
+      ctx.strokeStyle = '#ef4444';
+      ctx.lineWidth = 1.5;
+      ctx.strokeRect(x + 0.5, y + 0.5, w, h);
+
+      // Relleno sutil translúcido para identificar el área física del objeto
+      ctx.fillStyle = 'rgba(239, 68, 68, 0.12)';
+      ctx.fillRect(x + 0.5, y + 0.5, w, h);
+
+      // 2. Determinar etiqueta legible del tipo de objeto
+      const className = entity.constructor.name;
+      let label = className;
+
+      if (className === 'Player') {
+        label = 'Jugador (Player)';
+      } else if (className === 'WaterFountain') {
+        label = 'Fuente de Agua (Fountain)';
+      } else if (className === 'Fireplace') {
+        label = 'Chimenea (Fireplace)';
+      } else if (className === 'Footbridge') {
+        label = 'Puente (Footbridge)';
+      } else if (className === 'Door') {
+        const d = entity as any;
+        label = `Puerta: ${d.doorName || 'Cerrada'} [${d.isUnlocked ? 'Abierta' : 'Cerrada'}]`;
+      } else if (className === 'KeyItem') {
+        const k = entity as any;
+        label = `Llave: ${k.keyName || k.keyId}`;
+      } else if (className === 'KitchenStove') {
+        label = 'Fogón (Stove)';
+      } else if (className === 'BedEntity') {
+        const b = entity as any;
+        label = `Cama: ${b.bedName || 'Dormitorio'}`;
+      } else if (className === 'BookshelfEntity') {
+        const bk = entity as any;
+        label = `Librería: ${bk.bookTitle || 'Estudio'}`;
+      } else if (className === 'TreasureChest') {
+        const c = entity as any;
+        label = `Cofre [${c.isOpen ? 'Abierto' : 'Cerrado'}]`;
+      } else if (className === 'PicnicTable') {
+        label = 'Mesa de Picnic';
+      } else if (className === 'GardenBench') {
+        label = 'Banco de Jardín';
+      } else if (className === 'BeachShore') {
+        label = 'Costa / Mar';
+      } else if (className === 'TreeEntity') {
+        label = 'Árbol (Tronco)';
+      }
+
+      // 3. Renderizar etiqueta flotante sobre el objeto
+      const textWidth = ctx.measureText(label).width;
+      const badgeW = textWidth + 8;
+      const badgeH = 15;
+      const badgeX = Math.floor(x + (w - badgeW) / 2);
+      const badgeY = y - badgeH - 3;
+
+      // Fondo oscuro semitransparente con borde rojo
+      ctx.fillStyle = 'rgba(15, 23, 42, 0.9)';
+      ctx.strokeStyle = '#ef4444';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.roundRect(badgeX, badgeY, badgeW, badgeH, 3);
+      ctx.fill();
+      ctx.stroke();
+
+      // Texto blanco
+      ctx.fillStyle = '#ffffff';
+      ctx.textAlign = 'center';
+      ctx.fillText(label, badgeX + badgeW / 2, badgeY + badgeH / 2);
+    }
+
+    ctx.restore();
   }
 }

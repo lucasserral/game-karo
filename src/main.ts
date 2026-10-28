@@ -55,10 +55,31 @@ window.addEventListener('DOMContentLoaded', async () => {
     }
   };
 
+  // Alternar visualización de bordes rojos y nombres de objetos (tecla B o botón)
+  const btnToggleBorders = document.getElementById('btn-toggle-borders');
+  const toggleBorders = (): void => {
+    world.showEntityDebug = !world.showEntityDebug;
+    if (btnToggleBorders) {
+      if (world.showEntityDebug) {
+        btnToggleBorders.style.background = 'rgba(239, 68, 68, 0.25)';
+        btnToggleBorders.style.borderColor = '#ef4444';
+        btnToggleBorders.style.color = '#f87171';
+      } else {
+        btnToggleBorders.style.background = '#0f172a';
+        btnToggleBorders.style.borderColor = '#64748b';
+        btnToggleBorders.style.color = '#94a3b8';
+      }
+    }
+  };
+
   btnToggleMask?.addEventListener('click', toggleMask);
+  btnToggleBorders?.addEventListener('click', toggleBorders);
+
   window.addEventListener('keydown', (e) => {
     if (e.key === 'm' || e.key === 'M') {
       toggleMask();
+    } else if (e.key === 'b' || e.key === 'B') {
+      toggleBorders();
     }
   });
 
