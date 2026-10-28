@@ -231,12 +231,16 @@ export class World {
       entity.render(ctx, camera);
     }
 
-    // 5. Superposición visual de depuración de máscara si está activa
+    // 5. Capa superior no interactiva (foreground / dosel / overhead)
+    // Se dibuja por encima del jugador y de todas las entidades (sin colisión ni interacción).
+    this.tileMap.renderForeground(ctx, camera);
+
+    // 6. Superposición visual de depuración de máscara si está activa
     if (this.showCollisionDebug && this.collisionMask) {
       this.collisionMask.renderDebug(ctx, camera);
     }
 
-    // 6. Bordes rojos e indicadores de tipo para objetos/entidades que no son la máscara
+    // 7. Bordes rojos e indicadores de tipo para objetos/entidades que no son la máscara
     if (this.showEntityDebug) {
       this.renderEntityDebug(ctx, visibleEntities);
     }

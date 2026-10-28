@@ -17,6 +17,7 @@ window.addEventListener('DOMContentLoaded', async () => {
     await AssetManager.getInstance().loadCustomTileset('/sprites/tileset.png');
     await AssetManager.getInstance().loadEstateMap('/maps/estate-map.webp');
     await AssetManager.getInstance().loadCollisionMask('/maps/estate-collision.png');
+    await AssetManager.getInstance().loadEstateForeground('/maps/estate-foreground.png');
     console.log('Game assets loaded successfully.');
   } catch (err) {
     console.warn('Using procedural fallbacks for missing assets:', err);

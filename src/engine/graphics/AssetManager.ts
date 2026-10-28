@@ -344,6 +344,7 @@ export class AssetManager {
 
   public estateMapImage: HTMLImageElement | null = null;
   public collisionMaskImage: HTMLImageElement | null = null;
+  public estateForegroundImage: HTMLImageElement | null = null;
 
   /**
    * Carga la imagen de alta definición del mapa de la finca (map-expectation).
@@ -362,6 +363,39 @@ export class AssetManager {
     });
     this.estateMapImage = img;
     return img;
+  }
+
+  /**
+   * Carga la capa de primer plano / dosel (overhead canopy layer) que se dibuja sobre el jugador y objetos.
+   * Si el archivo no existe todavía, no arroja error para permitir que el juego continúe con normalidad.
+   */
+  public async loadEstateForeground(url = '/maps/estate-foreground.png'): Promise<HTMLImageElement | null> {
+    const img = new Image();
+    img.src = url;
+    const loaded = await new Promise<boolean>((resolve) => {
+      img.onload = () => resolve(true);
+      img.onerror = () => {
+        // Intento de respaldo con formato WebP
+        const fallback = new Image();
+        fallback.src = '/maps/estate-foreground.webp';
+        fallback.onload = () => {
+          this.estateForegroundImage = fallback;
+          resolve(true);
+        };
+        fallback.onerror = () => {
+          console.info(
+            '[AssetManager] Capa de primer plano opcional no encontrada. ' +
+              'Agrega tu imagen en public/maps/estate-foreground.png (1600x1066) con transparencia para activarla.'
+          );
+          resolve(false);
+        };
+      };
+    });
+
+    if (loaded && !this.estateForegroundImage) {
+      this.estateForegroundImage = img;
+    }
+    return this.estateForegroundImage;
   }
 
   /**

@@ -38,6 +38,7 @@ export class LevelBuilder {
       customWidth: 1600,
       customHeight: 1066,
       backgroundImage: assets.estateMapImage ?? undefined,
+      foregroundImage: assets.estateForegroundImage ?? undefined,
       floorSprite: assets.estateWoodFloorSprite,
     });
 

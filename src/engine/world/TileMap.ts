@@ -7,13 +7,15 @@ export interface TileMapOptions {
   tileSize?: number;
   floorSprite?: Sprite;
   backgroundImage?: CanvasImageSource;
+  foregroundImage?: CanvasImageSource;
   customWidth?: number;
   customHeight?: number;
 }
 
 /**
  * TileMap gestiona el fondo visual del mundo, ya sea mediante una cuadrícula
- * clásica de tiles repetidos o mediante un mapa ilustrado en alta definición (como map-expectation).
+ * clásica de tiles repetidos o mediante un mapa ilustrado en alta definición (como map-expectation),
+ * así como una capa superior no interactiva (foreground/canopy) donde el jugador pasa por debajo.
  */
 export class TileMap {
   public readonly columns: number;
@@ -21,6 +23,7 @@ export class TileMap {
   public readonly tileSize: number;
   private floorSprite?: Sprite;
   public backgroundImage: CanvasImageSource | null = null;
+  public foregroundImage: CanvasImageSource | null = null;
   private customWidth?: number;
   private customHeight?: number;
 
@@ -37,6 +40,7 @@ export class TileMap {
       this.rows = opts.rows ?? Math.ceil((opts.customHeight ?? 1066) / this.tileSize);
       this.floorSprite = opts.floorSprite;
       this.backgroundImage = opts.backgroundImage ?? null;
+      this.foregroundImage = opts.foregroundImage ?? null;
       this.customWidth = opts.customWidth;
       this.customHeight = opts.customHeight;
     } else {
@@ -59,6 +63,10 @@ export class TileMap {
     this.backgroundImage = image;
     if (width) this.customWidth = width;
     if (height) this.customHeight = height;
+  }
+
+  public setForegroundImage(image: CanvasImageSource | null): void {
+    this.foregroundImage = image;
   }
 
   /**
@@ -94,6 +102,24 @@ export class TileMap {
           this.floorSprite.draw(ctx, x, y, this.tileSize, this.tileSize);
         }
       }
+    }
+  }
+
+  /**
+   * Renderiza la capa de primer plano que se sitúa por encima del jugador y todas las entidades.
+   * Ideal para copas de árboles, arcos, techos, candelabros o aleros.
+   */
+  public renderForeground(ctx: CanvasRenderingContext2D, camera: Camera): void {
+    if (!this.foregroundImage) return;
+
+    const visibleBounds = camera.getVisibleBounds();
+    const sx = Math.max(0, Math.floor(visibleBounds.left));
+    const sy = Math.max(0, Math.floor(visibleBounds.top));
+    const sw = Math.min(this.worldWidth - sx, Math.ceil(visibleBounds.width));
+    const sh = Math.min(this.worldHeight - sy, Math.ceil(visibleBounds.height));
+
+    if (sw > 0 && sh > 0) {
+      ctx.drawImage(this.foregroundImage, sx, sy, sw, sh, sx, sy, sw, sh);
     }
   }
 }
