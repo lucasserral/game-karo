@@ -414,13 +414,16 @@ export class AssetManager {
 
   /**
    * Crea una instancia de CollisionMask a partir de la imagen cargada.
+   * Utiliza automáticamente las dimensiones naturales de la imagen si no se especifican.
    */
-  public createCollisionMask(width = 1600, height = 1066): CollisionMask | null {
+  public createCollisionMask(width?: number, height?: number): CollisionMask | null {
     if (!this.collisionMaskImage) {
       console.warn('No hay imagen de máscara de colisión cargada.');
       return null;
     }
-    return CollisionMask.fromImage(this.collisionMaskImage, width, height);
+    const w = width ?? this.collisionMaskImage.naturalWidth ?? 1600;
+    const h = height ?? this.collisionMaskImage.naturalHeight ?? 1066;
+    return CollisionMask.fromImage(this.collisionMaskImage, w, h);
   }
 
   /**

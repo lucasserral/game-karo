@@ -33,25 +33,29 @@ export class LevelBuilder {
   public static buildEstateWorld(inputManager: InputManager): World {
     const assets = AssetManager.getInstance();
 
-    // 1. Crear el mapa de fondo ilustrado en alta definición (1600x1066)
+    const bgImg = assets.estateMapImage;
+    const mapWidth = bgImg?.naturalWidth || 1600;
+    const mapHeight = bgImg?.naturalHeight || 1066;
+
+    // 1. Crear el mapa de fondo ilustrado en alta definición
     const tileMap = new TileMap({
-      customWidth: 1600,
-      customHeight: 1066,
-      backgroundImage: assets.estateMapImage ?? undefined,
+      customWidth: mapWidth,
+      customHeight: mapHeight,
+      backgroundImage: bgImg ?? undefined,
       foregroundImage: assets.estateForegroundImage ?? undefined,
       floorSprite: assets.estateWoodFloorSprite,
     });
 
     // 2. Jugador: Inicia en el patio central, al sur de la fuente
-    const playerStartX = 640;
-    const playerStartY = 555;
+    const playerStartX = 540;
+    const playerStartY = 9a55;
     const player = new Player(playerStartX, playerStartY, inputManager);
     player.facingDirection = 'up';
 
     const world = new World(tileMap, player);
 
-    // 3. Asignar la Máscara de Colisión de píxel perfecto (1600x1066)
-    world.collisionMask = assets.createCollisionMask(1600, 1066);
+    // 3. Asignar la Máscara de Colisión de píxel perfecto adaptada a la resolución
+    world.collisionMask = assets.createCollisionMask(mapWidth, mapHeight);
 
     // 4. Objetos interactivos vivos y animados
     // Fuente central monumental de agua
