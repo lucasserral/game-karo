@@ -47,8 +47,8 @@ export class LevelBuilder {
     });
 
     // 2. Jugador: Inicia en el patio central, al sur de la fuente
-    const playerStartX = 540;
-    const playerStartY = 9a55;
+    const playerStartX = 380;
+    const playerStartY = 955;
     const player = new Player(playerStartX, playerStartY, inputManager);
     player.facingDirection = 'up';
 
