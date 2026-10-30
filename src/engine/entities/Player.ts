@@ -57,6 +57,20 @@ export class Player extends Actor {
     return this.photoFragments.size >= 4;
   }
 
+  // Fishing stats and inventory catches
+  public fishingCatches: Array<{ type: 'fish' | 'bottle' | 'key'; name: string; icon: string; detail?: string }> = [];
+  public fishCaughtCount = 0;
+  public bottlesFoundCount = 0;
+
+  public addFishingCatch(item: { type: 'fish' | 'bottle' | 'key'; name: string; icon: string; detail?: string }): void {
+    this.fishingCatches.push(item);
+    if (item.type === 'fish') this.fishCaughtCount++;
+    if (item.type === 'bottle') this.bottlesFoundCount++;
+    if (item.type === 'key') {
+      this.addKey('key_2');
+    }
+  }
+
   public setNotification(text: string, duration = 2.5): void {
     this.lastNotification = text;
     this.notificationTimer = duration;

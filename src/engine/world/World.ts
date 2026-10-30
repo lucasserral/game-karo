@@ -345,6 +345,8 @@ export class World {
       } else if (className === 'PhotoFragmentItem') {
         const frag = entity as any;
         label = `Fragmento Foto #${frag.fragmentIndex}`;
+      } else if (className === 'FishingRodEntity') {
+        label = 'Caña de Pescar (Muelle)';
       }
 
       // 3. Renderizar etiqueta flotante sobre el objeto

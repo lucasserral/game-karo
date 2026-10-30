@@ -98,6 +98,10 @@ export function getEntityInfo(entity: GameObject): EntityInfo {
     label = `Pedacito de Foto #${frag.fragmentIndex}`;
     icon = '🧩';
     category = 'Minijuegos';
+  } else if (className === 'FishingRodEntity') {
+    label = 'Caña de Pescar (Muelle)';
+    icon = '🎣';
+    category = 'Minijuegos';
   }
 
   return {

@@ -6,6 +6,7 @@ import { TileStudio } from './editor/TileStudio.ts';
 import { MapInspector } from './editor/MapInspector.ts';
 import { MinigameManager } from './engine/minigames/MinigameManager.ts';
 import { PhotoPuzzleMinigame } from './engine/minigames/photoPuzzle/PhotoPuzzleMinigame.ts';
+import { FishingMinigame } from './engine/minigames/fishing/FishingMinigame.ts';
 
 window.addEventListener('DOMContentLoaded', async () => {
   const canvas = document.getElementById('game-canvas') as HTMLCanvasElement;
@@ -99,6 +100,7 @@ window.addEventListener('DOMContentLoaded', async () => {
     minigameManager.setContainers(defaultSidebar, minigameContainer);
   }
   minigameManager.registerMinigame(new PhotoPuzzleMinigame('/game1/assets/photo.png'));
+  minigameManager.registerMinigame(new FishingMinigame());
 
   let frameCount = 0;
   let lastFpsUpdate = performance.now();
@@ -107,7 +109,8 @@ window.addEventListener('DOMContentLoaded', async () => {
     golden_key: { label: 'Llave Dorada', icon: '🗝️' },
     iron_key: { label: 'Llave de Hierro', icon: '🗝️' },
     crystal_key: { label: 'Llave de Cristal', icon: '💎' },
-    key_1: { label: 'Llave del Retrato', icon: '🗝️' },
+    key_1: { label: 'Llave del Retrato (key_1)', icon: '🗝️' },
+    key_2: { label: 'Llave Marina (key_2)', icon: '🗝️' },
   };
 
   const updateHUD = (): void => {
@@ -115,6 +118,8 @@ window.addEventListener('DOMContentLoaded', async () => {
     if (inventoryDisplay) {
       const keys = Array.from(world.player.inventoryKeys);
       const fragmentCount = world.player.photoFragments.size;
+      const fishCount = world.player.fishCaughtCount;
+      const bottleCount = world.player.bottlesFoundCount;
 
       const keysHTML = keys
         .map((k) => {
@@ -138,15 +143,33 @@ window.addEventListener('DOMContentLoaded', async () => {
         `;
       }
 
-      if (keys.length === 0 && fragmentCount === 0) {
+      let fishingHTML = '';
+      if (fishCount > 0) {
+        fishingHTML += `
+          <div class="inventory-slot has-fish" title="Peces capturados en el muelle: ${fishCount}">
+            <span class="slot-icon">🐟</span>
+            <span class="slot-label">Peces: ${fishCount}</span>
+          </div>
+        `;
+      }
+      if (bottleCount > 0) {
+        fishingHTML += `
+          <div class="inventory-slot has-bottle" title="Botellas con mensaje pescadas: ${bottleCount}">
+            <span class="slot-icon">📜</span>
+            <span class="slot-label">Botellas: ${bottleCount}</span>
+          </div>
+        `;
+      }
+
+      if (keys.length === 0 && fragmentCount === 0 && fishCount === 0 && bottleCount === 0) {
         inventoryDisplay.innerHTML = `
           <div class="inventory-slot empty" id="slot-key" title="Ranura de Llave">
             <span class="slot-icon">🗝️</span>
-            <span class="slot-label">Sin Llaves</span>
+            <span class="slot-label">Sin Llaves ni Ítems</span>
           </div>
         `;
       } else {
-        inventoryDisplay.innerHTML = `${keysHTML}${fragmentsHTML}`;
+        inventoryDisplay.innerHTML = `${keysHTML}${fragmentsHTML}${fishingHTML}`;
       }
     }
 

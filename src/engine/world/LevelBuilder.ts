@@ -17,6 +17,7 @@ import { TreasureChest } from '../entities/TreasureChest.ts';
 import { NatureParticleSystem } from '../entities/NatureParticleSystem.ts';
 import { PhotoTable } from '../entities/PhotoTable.ts';
 import { PhotoFragmentItem } from '../entities/PhotoFragmentItem.ts';
+import { FishingRodEntity } from '../entities/FishingRodEntity.ts';
 import type { InputManager } from '../core/InputManager.ts';
 
 /**
@@ -109,7 +110,7 @@ export class LevelBuilder {
     const door = new Door(609, 610, null, null, 'iron_key', 50, 18, 'Verja del Jardín Secreto'); world.addEntity(door);
 
     // Minijuego 1: Mesa con nota y rompecabezas de foto en (240, 740)
-    const photoTable = new PhotoTable(240, 740, 52, 36);
+    const photoTable = new PhotoTable(240, 740, 25, 36)
     world.addEntity(photoTable);
 
     // 4 Pedacitos de fotos repartidos por el mapa
@@ -121,6 +122,10 @@ export class LevelBuilder {
     world.addEntity(new PhotoFragmentItem(105, 150, 3));
     // 4. Fragmento 4: Costa y arena oriental
     world.addEntity(new PhotoFragmentItem(1380, 830, 4));
+
+    // Minijuego 2: Caña de pescar en el muelle en (1272, 343)
+    const fishingRod = new FishingRodEntity(1272, 343, 32, 32);
+    world.addEntity(fishingRod);
 
     // Puerta del Invernadero de Cristal (requiere Llave de Cristal)
     world.addEntity(
