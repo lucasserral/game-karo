@@ -17,7 +17,7 @@
 <body>
   <div id="app">
     <!-- Header bar with title and badges -->
-    <header class="game-header">
+    <!-- <header class="game-header">
       <div class="header-left">
         <div class="logo-badge">
           <span class="logo-icon">🎮</span>
@@ -33,7 +33,7 @@
         <span class="badge badge-tech">Vite + pnpm</span>
         <span class="badge badge-status" id="fps-badge">60 FPS</span>
       </div>
-    </header>
+    </header> -->
 
     <!-- Navigation Tabs -->
     <nav class="nav-tabs" role="tablist" aria-label="Modos de la aplicación">
@@ -81,73 +81,24 @@
               <div class="key-group">
                 <kbd class="key-badge key-action">E</kbd>
                 <span class="hint-text">Interactuar</span>
-                <button id="btn-toggle-mask" class="key-badge"
-                  style="cursor: pointer; border: 1px solid #38bdf8; background: #0f172a; color: #38bdf8; margin-left: 6px; font-weight: 600;"
-                  title="Ver u ocultar máscara de colisión (Tecla M)">
-                  🗺️ [M] Máscara
-                </button>
-                <button id="btn-toggle-borders" class="key-badge"
-                  style="cursor: pointer; border: 1px solid #ef4444; background: rgba(239, 68, 68, 0.25); color: #f87171; margin-left: 6px; font-weight: 600;"
-                  title="Ver u ocultar bordes rojos y nombres de objetos (Tecla B)">
-                  🎯 [B] Objetos
-                </button>
               </div>
             </div>
 
-            <div class="toolbar-section inventory-section">
-              <span class="section-label">Inventario:</span>
-              <div class="inventory-slots" id="inventory-display">
-                <div class="inventory-slot empty" id="slot-key" title="Ranura de Llave">
-                  <span class="slot-icon">🗝️</span>
-                  <span class="slot-label">Sin Llaves</span>
-                </div>
-              </div>
-            </div>
           </footer>
         </div>
 
         <!-- Sidebar / Inspection Panel -->
-        <aside class="features-sidebar">
-          <section class="panel-card">
-            <h3>🏡 Mansión & Finca Karo (POO)</h3>
-            <ul class="feature-list">
-              <li>
-                <strong>Mapa Completo (1600×1066):</strong>
-                Renderizado optimizado con <em>frustum culling</em> centrado en la mansión y exteriores.
-              </li>
-              <li>
-                <strong>Objetos Vivos y Animados:</strong>
-                <code>WaterFountain</code> con ondas y deseos, <code>Fireplace</code> con fuego y ascuas, y
-                <code>BeachShore</code> con oleaje.
-              </li>
-              <li>
-                <strong>Puente sobre el Lago:</strong>
-                <code>Footbridge</code> transitable con colisiones en barandillas y profundidad 2.5D.
-              </li>
-              <li>
-                <strong>Partículas Ambientales:</strong>
-                <code>NatureParticleSystem</code> con pétalos y hojas flotando suavemente con la brisa.
-              </li>
-              <li>
-                <strong>Interactividad Completa:</strong>
-                Fogón con sopa caliente, camas para descansar, librerías con crónicas y cofre del tesoro.
-              </li>
-              <li>
-                <strong>9 Nuevos Tiles en Tile Studio:</strong>
-                Suelo de madera, sendero de piedra, seto de boj, agua con loto, arena costera, alfombra, muro, librería
-                y fuente.
-              </li>
-            </ul>
-          </section>
-
-          <section class="panel-card mission-card">
-            <h3>🎯 Misiones de la Finca</h3>
-            <p>1. ⛲ Pide un deseo en la <strong>Fuente de Agua</strong> del jardín central con <kbd>E</kbd>.</p>
-            <p>2. 🗝️ Encuentra las <strong>3 Llaves Ocultas</strong>: Dorada (Estudio), Hierro (Cocina) y Cristal
-              (Estanque).</p>
-            <p>3. 🌉 Cruza el <strong>Puente de Madera</strong> sobre el estanque hasta la costa oriental.</p>
-            <p>4. 💎 Abre la verja del <strong>Jardín Secreto</strong> y desbloquea el Cofre del Tesoro.</p>
-          </section>
+        <aside class="features-sidebar" id="features-sidebar">
+          <div id="sidebar-default-content" class="sidebar-default-content">
+            <span class="section-label">Inventario:</span>
+            <div class="inventory-slots" id="inventory-display">
+              <div class="inventory-slot empty" id="slot-key" title="Ranura de Llave">
+                <span class="slot-icon">🗝️</span>
+                <span class="slot-label">Sin Llaves</span>
+              </div>
+            </div>
+          </div>
+          <div id="sidebar-minigame-container" class="sidebar-minigame-container" style="display: none;"></div>
         </aside>
       </main>
     </section>

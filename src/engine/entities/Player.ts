@@ -12,6 +12,7 @@ export class Player extends Actor {
   private inputManager: InputManager;
   private animator: AnimatedSprite;
   public inventoryKeys = new Set<string>();
+  public photoFragments = new Set<number>();
 
   // Feedback notifications (e.g. "¡Recogiste la Llave Dorada!", "Puerta abierta")
   public lastNotification: string | null = null;
@@ -41,6 +42,19 @@ export class Player extends Actor {
       return true;
     }
     return false;
+  }
+
+  public addPhotoFragment(fragmentIndex: number): void {
+    this.photoFragments.add(fragmentIndex);
+    this.setNotification(`¡Fragmento de foto #${fragmentIndex} encontrado! (${this.photoFragments.size}/4)`, 3.0);
+  }
+
+  public hasPhotoFragment(fragmentIndex: number): boolean {
+    return this.photoFragments.has(fragmentIndex);
+  }
+
+  public hasAllPhotoFragments(): boolean {
+    return this.photoFragments.size >= 4;
   }
 
   public setNotification(text: string, duration = 2.5): void {

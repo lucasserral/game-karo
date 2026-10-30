@@ -4,6 +4,8 @@ import { LevelBuilder } from './engine/world/LevelBuilder.ts';
 import { AssetManager } from './engine/graphics/AssetManager.ts';
 import { TileStudio } from './editor/TileStudio.ts';
 import { MapInspector } from './editor/MapInspector.ts';
+import { MinigameManager } from './engine/minigames/MinigameManager.ts';
+import { PhotoPuzzleMinigame } from './engine/minigames/photoPuzzle/PhotoPuzzleMinigame.ts';
 
 window.addEventListener('DOMContentLoaded', async () => {
   const canvas = document.getElementById('game-canvas') as HTMLCanvasElement;
@@ -88,6 +90,15 @@ window.addEventListener('DOMContentLoaded', async () => {
   // 6. Wire DOM HUD elements (FPS counter and Dynamic Inventory)
   const fpsBadge = document.getElementById('fps-badge');
   const inventoryDisplay = document.getElementById('inventory-display');
+  const defaultSidebar = document.getElementById('sidebar-default-content');
+  const minigameContainer = document.getElementById('sidebar-minigame-container');
+
+  // Initialize Minigame System
+  const minigameManager = MinigameManager.getInstance();
+  if (defaultSidebar && minigameContainer) {
+    minigameManager.setContainers(defaultSidebar, minigameContainer);
+  }
+  minigameManager.registerMinigame(new PhotoPuzzleMinigame('/game1/assets/photo.png'));
 
   let frameCount = 0;
   let lastFpsUpdate = performance.now();
@@ -96,13 +107,38 @@ window.addEventListener('DOMContentLoaded', async () => {
     golden_key: { label: 'Llave Dorada', icon: '🗝️' },
     iron_key: { label: 'Llave de Hierro', icon: '🗝️' },
     crystal_key: { label: 'Llave de Cristal', icon: '💎' },
+    key_1: { label: 'Llave del Retrato', icon: '🗝️' },
   };
 
   const updateHUD = (): void => {
     // Inventory update
     if (inventoryDisplay) {
       const keys = Array.from(world.player.inventoryKeys);
-      if (keys.length === 0) {
+      const fragmentCount = world.player.photoFragments.size;
+
+      const keysHTML = keys
+        .map((k) => {
+          const info = keyLabels[k] || { label: k, icon: '🗝️' };
+          return `
+          <div class="inventory-slot has-key" title="${info.label}">
+            <span class="slot-icon">${info.icon}</span>
+            <span class="slot-label">${info.label}</span>
+          </div>
+        `;
+        })
+        .join('');
+
+      let fragmentsHTML = '';
+      if (fragmentCount > 0) {
+        fragmentsHTML = `
+          <div class="inventory-slot has-fragments" title="Pedacitos de foto coleccionados: ${fragmentCount} de 4">
+            <span class="slot-icon">🧩</span>
+            <span class="slot-label">Fotos: ${fragmentCount}/4</span>
+          </div>
+        `;
+      }
+
+      if (keys.length === 0 && fragmentCount === 0) {
         inventoryDisplay.innerHTML = `
           <div class="inventory-slot empty" id="slot-key" title="Ranura de Llave">
             <span class="slot-icon">🗝️</span>
@@ -110,17 +146,7 @@ window.addEventListener('DOMContentLoaded', async () => {
           </div>
         `;
       } else {
-        inventoryDisplay.innerHTML = keys
-          .map((k) => {
-            const info = keyLabels[k] || { label: k, icon: '🗝️' };
-            return `
-            <div class="inventory-slot has-key" title="${info.label}">
-              <span class="slot-icon">${info.icon}</span>
-              <span class="slot-label">${info.label}</span>
-            </div>
-          `;
-          })
-          .join('');
+        inventoryDisplay.innerHTML = `${keysHTML}${fragmentsHTML}`;
       }
     }
 

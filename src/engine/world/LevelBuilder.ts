@@ -7,7 +7,6 @@ import { Door } from '../entities/Door.ts';
 import { KeyItem } from '../entities/KeyItem.ts';
 import { WaterFountain } from '../entities/WaterFountain.ts';
 import { Fireplace } from '../entities/Fireplace.ts';
-import { Footbridge } from '../entities/Footbridge.ts';
 import { BookshelfEntity } from '../entities/BookshelfEntity.ts';
 import { KitchenStove } from '../entities/KitchenStove.ts';
 import { BedEntity } from '../entities/BedEntity.ts';
@@ -16,7 +15,8 @@ import { GardenBench } from '../entities/GardenBench.ts';
 import { BeachShore } from '../entities/BeachShore.ts';
 import { TreasureChest } from '../entities/TreasureChest.ts';
 import { NatureParticleSystem } from '../entities/NatureParticleSystem.ts';
-import { TreeEntity } from '../entities/TreeEntity.ts';
+import { PhotoTable } from '../entities/PhotoTable.ts';
+import { PhotoFragmentItem } from '../entities/PhotoFragmentItem.ts';
 import type { InputManager } from '../core/InputManager.ts';
 
 /**
@@ -105,10 +105,22 @@ export class LevelBuilder {
     const crystalkey = new KeyItem(224, 55, assets.keySprite, 'crystal_key', 'Llave de Cristal', 28, 28); world.addEntity(crystalkey);
 
     // Puertas y verjas con cerrojo
-    // Puerta de la Suite Principal (requiere Llave Dorada)
-    const key = new KeyItem(839, 557, assets.keySprite, 'golden_key', 'Llave Dorada', 28, 28); world.addEntity(key);
     // Verja de Hierro del Jardín Secreto (requiere Llave de Hierro)
     const door = new Door(609, 610, null, null, 'iron_key', 50, 18, 'Verja del Jardín Secreto'); world.addEntity(door);
+
+    // Minijuego 1: Mesa con nota y rompecabezas de foto en (240, 740)
+    const photoTable = new PhotoTable(240, 740, 52, 36);
+    world.addEntity(photoTable);
+
+    // 4 Pedacitos de fotos repartidos por el mapa
+    // 1. Fragmento 1: Biblioteca/Estudio norte
+    world.addEntity(new PhotoFragmentItem(920, 240, 1));
+    // 2. Fragmento 2: Patio de la fuente central
+    world.addEntity(new PhotoFragmentItem(680, 520, 2));
+    // 3. Fragmento 3: Suite con dosel occidental
+    world.addEntity(new PhotoFragmentItem(105, 150, 3));
+    // 4. Fragmento 4: Costa y arena oriental
+    world.addEntity(new PhotoFragmentItem(1380, 830, 4));
 
     // Puerta del Invernadero de Cristal (requiere Llave de Cristal)
     world.addEntity(

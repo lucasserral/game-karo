@@ -89,6 +89,15 @@ export function getEntityInfo(entity: GameObject): EntityInfo {
     label = 'Obstáculo Sólido';
     icon = '🧱';
     category = 'Colisiones';
+  } else if (className === 'PhotoTable') {
+    label = 'Mesa de Nota (Minijuego)';
+    icon = '📝';
+    category = 'Minijuegos';
+  } else if (className === 'PhotoFragmentItem') {
+    const frag = entity as any;
+    label = `Pedacito de Foto #${frag.fragmentIndex}`;
+    icon = '🧩';
+    category = 'Minijuegos';
   }
 
   return {

@@ -340,6 +340,11 @@ export class World {
         label = 'Costa / Mar';
       } else if (className === 'TreeEntity') {
         label = 'Árbol (Tronco)';
+      } else if (className === 'PhotoTable') {
+        label = 'Mesa de Nota (Minijuego)';
+      } else if (className === 'PhotoFragmentItem') {
+        const frag = entity as any;
+        label = `Fragmento Foto #${frag.fragmentIndex}`;
       }
 
       // 3. Renderizar etiqueta flotante sobre el objeto
