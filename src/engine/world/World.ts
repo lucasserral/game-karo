@@ -19,7 +19,7 @@ export class World {
   public tileMap: TileMap;
   public collisionMask: CollisionMask | null = null;
   public showCollisionDebug = false;
-  public showEntityDebug = true;
+  public showEntityDebug = false;
 
   constructor(tileMap: TileMap, player: Player) {
     this.tileMap = tileMap;
@@ -70,8 +70,13 @@ export class World {
       if (other === actor || other.isDestroyed || !isCollidable(other)) {
         continue;
       }
-      if (other.isSolid() && box.intersects(other.getCollider())) {
-        return true;
+      if (other.isSolid()) {
+        const otherBox = other.getCollider();
+        const hit =
+          other.colliderShape === 'oval'
+            ? box.intersectsEllipse(otherBox)
+            : box.intersects(otherBox);
+        if (hit) return true;
       }
     }
     return false;
@@ -107,7 +112,11 @@ export class World {
         for (const other of this.entities) {
           if (other === actor || other.isDestroyed || !isCollidable(other)) continue;
           const otherBox = other.getCollider();
-          if (currentBox.intersects(otherBox)) {
+          const hit =
+            other.colliderShape === 'oval'
+              ? currentBox.intersectsEllipse(otherBox)
+              : currentBox.intersects(otherBox);
+          if (hit) {
             if (other.onCollision) other.onCollision(actor, dx > 0 ? -1 : 1, 0);
             if (other.isSolid()) {
               collided = true;
@@ -154,7 +163,11 @@ export class World {
         for (const other of this.entities) {
           if (other === actor || other.isDestroyed || !isCollidable(other)) continue;
           const otherBox = other.getCollider();
-          if (currentBox.intersects(otherBox)) {
+          const hit =
+            other.colliderShape === 'oval'
+              ? currentBox.intersectsEllipse(otherBox)
+              : currentBox.intersects(otherBox);
+          if (hit) {
             if (other.onCollision) other.onCollision(actor, 0, dy > 0 ? -1 : 1);
             if (other.isSolid()) {
               collided = true;
@@ -273,11 +286,22 @@ export class World {
       // 1. Borde fino rojo (#ef4444)
       ctx.strokeStyle = '#ef4444';
       ctx.lineWidth = 1.5;
-      ctx.strokeRect(x + 0.5, y + 0.5, w, h);
 
-      // Relleno sutil translúcido para identificar el área física del objeto
-      ctx.fillStyle = 'rgba(239, 68, 68, 0.12)';
-      ctx.fillRect(x + 0.5, y + 0.5, w, h);
+      if (entity.colliderShape === 'oval') {
+        const cx = Math.floor(x + w / 2);
+        const cy = Math.floor(y + h / 2);
+        const rx = Math.floor(w / 2);
+        const ry = Math.floor(h / 2);
+        ctx.beginPath();
+        ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(239, 68, 68, 0.12)';
+        ctx.fill();
+        ctx.stroke();
+      } else {
+        ctx.strokeRect(x + 0.5, y + 0.5, w, h);
+        ctx.fillStyle = 'rgba(239, 68, 68, 0.12)';
+        ctx.fillRect(x + 0.5, y + 0.5, w, h);
+      }
 
       // 2. Determinar etiqueta legible del tipo de objeto
       const className = entity.constructor.name;

@@ -27,9 +27,10 @@ export class WaterFountain extends GameObject implements ICollidable, IInteracti
   private particles: FountainParticle[] = [];
   private wishesCount = 0;
 
-  constructor(x = 640, y = 490) {
+  constructor(x = 640, y = 490, width = 110, height = 110) {
     // x, y es el centro de la fuente en el mapa
-    super(x - 55, y - 55, 110, 110, 8); // zIndex 8
+    super(x - width / 2, y - height / 2, width, height, 8); // zIndex 8
+    this.colliderShape = 'oval';
   }
 
   // --- ICollidable ---
@@ -41,8 +42,9 @@ export class WaterFountain extends GameObject implements ICollidable, IInteracti
     // El núcleo sólido de piedra de la fuente en la base
     const cx = this.position.x + this.size.x / 2;
     const cy = this.position.y + this.size.y / 2;
-    const radius = 42;
-    return new BoundingBox(cx - radius, cy - radius * 0.75, radius * 2, radius * 1.5);
+    const rx = this.size.x * 0.38;
+    const ry = this.size.y * 0.28;
+    return new BoundingBox(cx - rx, cy - ry, rx * 2, ry * 2);
   }
 
   // --- IInteractive ---

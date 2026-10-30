@@ -21,6 +21,7 @@ export class Player extends Actor {
     super(x, y, 36, 46, 140, 20); // 36x46px hero dimension, 140px/sec movement speed, zIndex 20
     this.colliderOffset.set(5, 30);
     this.colliderSize.set(26, 14);
+    this.colliderShape = 'oval';
     this.inputManager = inputManager;
     this.animator = AssetManager.getInstance().createPlayerAnimator();
   }

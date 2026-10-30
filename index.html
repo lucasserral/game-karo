@@ -1,160 +1,168 @@
 <!doctype html>
 <html lang="es">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Motor 2D con TypeScript & Canvas - Game Engine</title>
-    <meta
-      name="description"
-      content="Motor de juego 2D en HTML5 Canvas con TypeScript, POO, sistema de colisiones pasivas/activas, sprites animados y cámara cenital."
-    />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap"
-      rel="stylesheet"
-    />
-  </head>
-  <body>
-    <div id="app">
-      <!-- Header bar with title and badges -->
-      <header class="game-header">
-        <div class="header-left">
-          <div class="logo-badge">
-            <span class="logo-icon">🎮</span>
-            <div class="logo-text">
-              <h1>K-Engine 2D</h1>
-              <span class="subtitle">Mansión de Karo • Jardines de Agua & Costa</span>
-            </div>
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Motor 2D con TypeScript & Canvas - Game Engine</title>
+  <meta name="description"
+    content="Motor de juego 2D en HTML5 Canvas con TypeScript, POO, sistema de colisiones pasivas/activas, sprites animados y cámara cenital." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap"
+    rel="stylesheet" />
+</head>
+
+<body>
+  <div id="app">
+    <!-- Header bar with title and badges -->
+    <header class="game-header">
+      <div class="header-left">
+        <div class="logo-badge">
+          <span class="logo-icon">🎮</span>
+          <div class="logo-text">
+            <h1>K-Engine 2D</h1>
+            <span class="subtitle">Mansión de Karo • Jardines de Agua & Costa</span>
           </div>
         </div>
+      </div>
 
-        <div class="header-badges">
-          <span class="badge badge-tech">TypeScript</span>
-          <span class="badge badge-tech">Vite + pnpm</span>
-          <span class="badge badge-status" id="fps-badge">60 FPS</span>
-        </div>
-      </header>
+      <div class="header-badges">
+        <span class="badge badge-tech">TypeScript</span>
+        <span class="badge badge-tech">Vite + pnpm</span>
+        <span class="badge badge-status" id="fps-badge">60 FPS</span>
+      </div>
+    </header>
 
-      <!-- Navigation Tabs -->
-      <nav class="nav-tabs" role="tablist" aria-label="Modos de la aplicación">
-        <button class="nav-tab active" id="tab-game" role="tab" aria-selected="true" aria-controls="view-game">
-          <span class="tab-icon">🎮</span>
-          <span>Juego</span>
-        </button>
-        <button class="nav-tab" id="tab-map" role="tab" aria-selected="false" aria-controls="view-map">
-          <span class="tab-icon">🗺️</span>
-          <span>Mapa Completo</span>
-          <span class="tab-badge" style="background: rgba(56, 189, 248, 0.2); color: #38bdf8; border-color: rgba(56, 189, 248, 0.4);">Inspector</span>
-        </button>
-        <button class="nav-tab" id="tab-paint" role="tab" aria-selected="false" aria-controls="view-paint">
+    <!-- Navigation Tabs -->
+    <nav class="nav-tabs" role="tablist" aria-label="Modos de la aplicación">
+      <button class="nav-tab active" id="tab-game" role="tab" aria-selected="true" aria-controls="view-game">
+        <span class="tab-icon">🎮</span>
+        <span>Juego</span>
+      </button>
+      <button class="nav-tab" id="tab-map" role="tab" aria-selected="false" aria-controls="view-map">
+        <span class="tab-icon">🗺️</span>
+        <span>Mapa Completo</span>
+        <span class="tab-badge"
+          style="background: rgba(56, 189, 248, 0.2); color: #38bdf8; border-color: rgba(56, 189, 248, 0.4);">Inspector</span>
+      </button>
+      <!-- <button class="nav-tab" id="tab-paint" role="tab" aria-selected="false" aria-controls="view-paint">
           <span class="tab-icon">🎨</span>
           <span>Tile Studio (Paint XP)</span>
           <span class="tab-badge">Editor de Tiles</span>
-        </button>
-      </nav>
+        </button> -->
+    </nav>
 
-      <!-- View 1: Game -->
-      <section id="view-game" class="tab-view active" role="tabpanel" aria-labelledby="tab-game">
-        <main class="game-main">
-          <div class="arcade-cabinet">
-            <!-- Canvas Frame -->
-            <div class="canvas-wrapper" id="canvas-container">
-              <canvas id="game-canvas" width="800" height="520" tabindex="0"></canvas>
-            </div>
-
-            <!-- Controls & Status Bar below Canvas -->
-            <footer class="game-toolbar">
-              <div class="toolbar-section controls-hint">
-                <span class="section-label">Movimiento:</span>
-                <div class="key-group">
-                  <kbd class="key-badge">W</kbd>
-                  <kbd class="key-badge">A</kbd>
-                  <kbd class="key-badge">S</kbd>
-                  <kbd class="key-badge">D</kbd>
-                </div>
-                <span class="hint-text">(o Flechas)</span>
-              </div>
-
-              <div class="toolbar-section interaction-hint">
-                <span class="section-label">Acción:</span>
-                <div class="key-group">
-                  <kbd class="key-badge key-action">E</kbd>
-                  <span class="hint-text">Interactuar</span>
-                  <button id="btn-toggle-mask" class="key-badge" style="cursor: pointer; border: 1px solid #38bdf8; background: #0f172a; color: #38bdf8; margin-left: 6px; font-weight: 600;" title="Ver u ocultar máscara de colisión (Tecla M)">
-                    🗺️ [M] Máscara
-                  </button>
-                  <button id="btn-toggle-borders" class="key-badge" style="cursor: pointer; border: 1px solid #ef4444; background: rgba(239, 68, 68, 0.25); color: #f87171; margin-left: 6px; font-weight: 600;" title="Ver u ocultar bordes rojos y nombres de objetos (Tecla B)">
-                    🎯 [B] Objetos
-                  </button>
-                </div>
-              </div>
-
-              <div class="toolbar-section inventory-section">
-                <span class="section-label">Inventario:</span>
-                <div class="inventory-slots" id="inventory-display">
-                  <div class="inventory-slot empty" id="slot-key" title="Ranura de Llave">
-                    <span class="slot-icon">🗝️</span>
-                    <span class="slot-label">Sin Llaves</span>
-                  </div>
-                </div>
-              </div>
-            </footer>
+    <!-- View 1: Game -->
+    <section id="view-game" class="tab-view active" role="tabpanel" aria-labelledby="tab-game">
+      <main class="game-main">
+        <div class="arcade-cabinet">
+          <!-- Canvas Frame -->
+          <div class="canvas-wrapper" id="canvas-container">
+            <canvas id="game-canvas" width="800" height="520" tabindex="0"></canvas>
           </div>
 
-          <!-- Sidebar / Inspection Panel -->
-          <aside class="features-sidebar">
-            <section class="panel-card">
-              <h3>🏡 Mansión & Finca Karo (POO)</h3>
-              <ul class="feature-list">
-                <li>
-                  <strong>Mapa Completo (1600×1066):</strong>
-                  Renderizado optimizado con <em>frustum culling</em> centrado en la mansión y exteriores.
-                </li>
-                <li>
-                  <strong>Objetos Vivos y Animados:</strong>
-                  <code>WaterFountain</code> con ondas y deseos, <code>Fireplace</code> con fuego y ascuas, y <code>BeachShore</code> con oleaje.
-                </li>
-                <li>
-                  <strong>Puente sobre el Lago:</strong>
-                  <code>Footbridge</code> transitable con colisiones en barandillas y profundidad 2.5D.
-                </li>
-                <li>
-                  <strong>Partículas Ambientales:</strong>
-                  <code>NatureParticleSystem</code> con pétalos y hojas flotando suavemente con la brisa.
-                </li>
-                <li>
-                  <strong>Interactividad Completa:</strong>
-                  Fogón con sopa caliente, camas para descansar, librerías con crónicas y cofre del tesoro.
-                </li>
-                <li>
-                  <strong>9 Nuevos Tiles en Tile Studio:</strong>
-                  Suelo de madera, sendero de piedra, seto de boj, agua con loto, arena costera, alfombra, muro, librería y fuente.
-                </li>
-              </ul>
-            </section>
+          <!-- Controls & Status Bar below Canvas -->
+          <footer class="game-toolbar">
+            <div class="toolbar-section controls-hint">
+              <span class="section-label">Movimiento:</span>
+              <div class="key-group">
+                <kbd class="key-badge">W</kbd>
+                <kbd class="key-badge">A</kbd>
+                <kbd class="key-badge">S</kbd>
+                <kbd class="key-badge">D</kbd>
+              </div>
+              <span class="hint-text">(o Flechas)</span>
+            </div>
 
-            <section class="panel-card mission-card">
-              <h3>🎯 Misiones de la Finca</h3>
-              <p>1. ⛲ Pide un deseo en la <strong>Fuente de Agua</strong> del jardín central con <kbd>E</kbd>.</p>
-              <p>2. 🗝️ Encuentra las <strong>3 Llaves Ocultas</strong>: Dorada (Estudio), Hierro (Cocina) y Cristal (Estanque).</p>
-              <p>3. 🌉 Cruza el <strong>Puente de Madera</strong> sobre el estanque hasta la costa oriental.</p>
-              <p>4. 💎 Abre la verja del <strong>Jardín Secreto</strong> y desbloquea el Cofre del Tesoro.</p>
-            </section>
-          </aside>
-        </main>
-      </section>
+            <div class="toolbar-section interaction-hint">
+              <span class="section-label">Acción:</span>
+              <div class="key-group">
+                <kbd class="key-badge key-action">E</kbd>
+                <span class="hint-text">Interactuar</span>
+                <button id="btn-toggle-mask" class="key-badge"
+                  style="cursor: pointer; border: 1px solid #38bdf8; background: #0f172a; color: #38bdf8; margin-left: 6px; font-weight: 600;"
+                  title="Ver u ocultar máscara de colisión (Tecla M)">
+                  🗺️ [M] Máscara
+                </button>
+                <button id="btn-toggle-borders" class="key-badge"
+                  style="cursor: pointer; border: 1px solid #ef4444; background: rgba(239, 68, 68, 0.25); color: #f87171; margin-left: 6px; font-weight: 600;"
+                  title="Ver u ocultar bordes rojos y nombres de objetos (Tecla B)">
+                  🎯 [B] Objetos
+                </button>
+              </div>
+            </div>
 
-      <!-- View 2: Global Map Overview & Object Inspector -->
-      <section id="view-map" class="tab-view" role="tabpanel" aria-labelledby="tab-map">
-        <div id="map-inspector-mount"></div>
-      </section>
+            <div class="toolbar-section inventory-section">
+              <span class="section-label">Inventario:</span>
+              <div class="inventory-slots" id="inventory-display">
+                <div class="inventory-slot empty" id="slot-key" title="Ranura de Llave">
+                  <span class="slot-icon">🗝️</span>
+                  <span class="slot-label">Sin Llaves</span>
+                </div>
+              </div>
+            </div>
+          </footer>
+        </div>
 
-      <!-- View 3: Tile Studio / MS Paint XP -->
-      <section id="view-paint" class="tab-view" role="tabpanel" aria-labelledby="tab-paint">
-        <div id="tile-studio-mount"></div>
-      </section>
-    </div>
-    <script type="module" src="/src/main.ts"></script>
-  </body>
+        <!-- Sidebar / Inspection Panel -->
+        <aside class="features-sidebar">
+          <section class="panel-card">
+            <h3>🏡 Mansión & Finca Karo (POO)</h3>
+            <ul class="feature-list">
+              <li>
+                <strong>Mapa Completo (1600×1066):</strong>
+                Renderizado optimizado con <em>frustum culling</em> centrado en la mansión y exteriores.
+              </li>
+              <li>
+                <strong>Objetos Vivos y Animados:</strong>
+                <code>WaterFountain</code> con ondas y deseos, <code>Fireplace</code> con fuego y ascuas, y
+                <code>BeachShore</code> con oleaje.
+              </li>
+              <li>
+                <strong>Puente sobre el Lago:</strong>
+                <code>Footbridge</code> transitable con colisiones en barandillas y profundidad 2.5D.
+              </li>
+              <li>
+                <strong>Partículas Ambientales:</strong>
+                <code>NatureParticleSystem</code> con pétalos y hojas flotando suavemente con la brisa.
+              </li>
+              <li>
+                <strong>Interactividad Completa:</strong>
+                Fogón con sopa caliente, camas para descansar, librerías con crónicas y cofre del tesoro.
+              </li>
+              <li>
+                <strong>9 Nuevos Tiles en Tile Studio:</strong>
+                Suelo de madera, sendero de piedra, seto de boj, agua con loto, arena costera, alfombra, muro, librería
+                y fuente.
+              </li>
+            </ul>
+          </section>
+
+          <section class="panel-card mission-card">
+            <h3>🎯 Misiones de la Finca</h3>
+            <p>1. ⛲ Pide un deseo en la <strong>Fuente de Agua</strong> del jardín central con <kbd>E</kbd>.</p>
+            <p>2. 🗝️ Encuentra las <strong>3 Llaves Ocultas</strong>: Dorada (Estudio), Hierro (Cocina) y Cristal
+              (Estanque).</p>
+            <p>3. 🌉 Cruza el <strong>Puente de Madera</strong> sobre el estanque hasta la costa oriental.</p>
+            <p>4. 💎 Abre la verja del <strong>Jardín Secreto</strong> y desbloquea el Cofre del Tesoro.</p>
+          </section>
+        </aside>
+      </main>
+    </section>
+
+    <!-- View 2: Global Map Overview & Object Inspector -->
+    <section id="view-map" class="tab-view" role="tabpanel" aria-labelledby="tab-map">
+      <div id="map-inspector-mount"></div>
+    </section>
+
+    <!-- View 3: Tile Studio / MS Paint XP -->
+    <section id="view-paint" class="tab-view" role="tabpanel" aria-labelledby="tab-paint">
+      <div id="tile-studio-mount"></div>
+    </section>
+  </div>
+  <script type="module" src="/src/main.ts"></script>
+</body>
+
 </html>

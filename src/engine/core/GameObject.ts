@@ -14,6 +14,7 @@ export abstract class GameObject {
   public size: Vector2D;
   public zIndex: number;
   public isDestroyed: boolean;
+  public colliderShape: 'rectangle' | 'oval' = 'rectangle';
 
   constructor(x = 0, y = 0, width = 32, height = 32, zIndex = 0) {
     this.id = `entity_${nextEntityId++}`;
@@ -21,6 +22,7 @@ export abstract class GameObject {
     this.size = new Vector2D(width, height);
     this.zIndex = zIndex;
     this.isDestroyed = false;
+    this.colliderShape = 'rectangle';
   }
 
   /**

@@ -59,142 +59,57 @@ export class LevelBuilder {
 
     // 4. Objetos interactivos vivos y animados
     // Fuente central monumental de agua
-    world.addEntity(new WaterFountain(640, 490));
+    const fountain = new WaterFountain(636, 493, 84, 86); world.addEntity(fountain);
 
     // Chimeneas acogedoras con llamas vivas y partículas de ascuas
-    world.addEntity(new Fireplace(375, 20, 60, 50)); // Salón principal norte
-    world.addEntity(new Fireplace(530, 730, 55, 50)); // Salón semicircular sur
+    const fire1 = new Fireplace(383, 58, 60, 33); world.addEntity(fire1);
+    const fire2 = new Fireplace(564, 730, 34, 50); world.addEntity(fire2);
 
     // Puente de madera arqueado sobre el estanque (con barandilla frontal en primer plano)
-    world.addEntity(new Footbridge(1225, 300, 135, 75));
+    // world.addEntity(new Footbridge(1225, 300, 135, 75));
 
     // Fogón de cocina con olla humeante
-    world.addEntity(new KitchenStove(645, 22, 65, 45));
+    const stove = new KitchenStove(640, 45, 40, 26); world.addEntity(stove);
 
     // Camas en las suites
-    world.addEntity(new BedEntity(45, 105, 80, 85, 'Cama con Dosel'));
-    world.addEntity(new BedEntity(840, 720, 85, 110, 'Cama de Invitados'));
-
+    const bed1 = new BedEntity(68, 134, 57, 56, 'Cama con Dosel'); world.addEntity(bed1);
+    const bed2 = new BedEntity(863, 756, 74, 73, 'Cama de Invitawddos'); world.addEntity(bed2);
     // Mesa de banquete al aire libre
-    world.addEntity(new PicnicTable(1110, 615, 85, 75));
+    const table = new PicnicTable(1140, 640, 64, 59); world.addEntity(table);
 
     // Bancos de jardín blancos para descansar
-    world.addEntity(new GardenBench(1055, 250, 36, 40));
-    world.addEntity(new GardenBench(1120, 550, 40, 32));
-    world.addEntity(new GardenBench(700, 710, 36, 45));
-    world.addEntity(new GardenBench(485, 865, 45, 32));
-    world.addEntity(new GardenBench(240, 950, 45, 32));
+    const bench2 = new GardenBench(1142, 571, 49, 16); world.addEntity(bench2);
+    world.addEntity(new GardenBench(723, 730, 16, 45));
+    const bench4 = new GardenBench(494, 899, 50, 19); world.addEntity(bench4);
 
     // Librerías interactivas con historia y secretos
-    world.addEntity(
-      new BookshelfEntity(
-        780,
-        160,
-        65,
-        85,
-        'Herbolario y Botánica de Karo',
-        'Describe las propiedades curativas de las orquídeas del invernadero y nenúfares del lago.'
-      )
-    );
-    world.addEntity(
-      new BookshelfEntity(
-        920,
-        160,
-        75,
-        85,
-        'Tratado de Arquitectura Clásica',
-        'Planos de la finca: "La llave de hierro descansa en la mesa de corte de la cocina gourmet".'
-      )
-    );
-    world.addEntity(
-      new BookshelfEntity(
-        440,
-        215,
-        120,
-        35,
-        'Crónicas de la Gran Dinastía',
-        '"Solo quienes piden deseos a la fuente obtienen la fortuna y la bendición de los vientos".'
-      )
-    );
-    world.addEntity(
-      new BookshelfEntity(
-        210,
-        825,
-        120,
-        35,
-        'Antología de Leyendas Marítimas',
-        'Narra el mito del cofre sagrado oculto en las ruinas del jardín secreto septentrional.'
-      )
-    );
+    const shelf1 = new BookshelfEntity(808, 211, 52, 32, 'Herbolario y Botánica de Karo', 'Describe las propiedades curativas de las orquídeas del invernadero y nenúfares del lago.'); world.addEntity(shelf1);
+
+    const shelf2 = new BookshelfEntity(946, 242, 46, 16, 'Tratado de Arquitectura Clásica', 'Planos de la finca: "La llave de hierro descansa en la mesa de corte de la cocina gourmet".'); world.addEntity(shelf2);
+
+    const shelf3 = new BookshelfEntity(497, 223, 77, 24, 'Crónicas de la Gran Dinastía', '"Solo quienes piden deseos a la fuente obtienen la fortuna y la bendición de los vientos".'); world.addEntity(shelf3);
+
+    const shelf4 = new BookshelfEntity(210, 835, 123, 25, 'Antología de Leyendas Marítimas', 'Narra el mito del cofre sagrado oculto en las ruinas del jardín secreto septentrional.'); world.addEntity(shelf4);
 
     // Cofre del Tesoro en el jardín secreto del norte
-    world.addEntity(new TreasureChest(880, 65, 'iron_key', 36, 30));
+    const chest1 = new TreasureChest(528, 488, 'iron_key', 36, 30); world.addEntity(chest1);
 
     // Llaves coleccionables dispersas en la finca
     // 1. Llave Dorada en el escritorio del estudio
-    world.addEntity(
-      new KeyItem(
-        875,
-        215,
-        assets.keySprite,
-        'golden_key',
-        'Llave Dorada',
-        28,
-        28
-      )
-    );
+    const goldenkey = new KeyItem(839, 557, assets.keySprite, 'golden_key', 'Llave Dorada', 28, 28); world.addEntity(goldenkey);
+
     // 2. Llave de Hierro en la tabla de la cocina
-    world.addEntity(
-      new KeyItem(
-        695,
-        155,
-        assets.keySprite,
-        'iron_key',
-        'Llave de Hierro',
-        28,
-        28
-      )
-    );
+    const ironkey = new KeyItem(654, 105, assets.keySprite, 'iron_key', 'Llave de Hierro', 28, 28); world.addEntity(ironkey);
+
     // 3. Llave de Cristal en la orilla del estanque
-    world.addEntity(
-      new KeyItem(
-        1420,
-        240,
-        assets.keySprite,
-        'crystal_key',
-        'Llave de Cristal',
-        28,
-        28
-      )
-    );
+    const crystalkey = new KeyItem(224, 55, assets.keySprite, 'crystal_key', 'Llave de Cristal', 28, 28); world.addEntity(crystalkey);
 
     // Puertas y verjas con cerrojo
     // Puerta de la Suite Principal (requiere Llave Dorada)
-    world.addEntity(
-      new Door(
-        200,
-        175,
-        null,
-        null,
-        'golden_key',
-        18,
-        42,
-        'Puerta de la Suite Principal'
-      )
-    );
+    const key = new KeyItem(839, 557, assets.keySprite, 'golden_key', 'Llave Dorada', 28, 28); world.addEntity(key);
     // Verja de Hierro del Jardín Secreto (requiere Llave de Hierro)
-    world.addEntity(
-      new Door(
-        840,
-        145,
-        null,
-        null,
-        'iron_key',
-        50,
-        18,
-        'Verja del Jardín Secreto'
-      )
-    );
+    const door = new Door(609, 610, null, null, 'iron_key', 50, 18, 'Verja del Jardín Secreto'); world.addEntity(door);
+
     // Puerta del Invernadero de Cristal (requiere Llave de Cristal)
     world.addEntity(
       new Door(
@@ -210,14 +125,14 @@ export class LevelBuilder {
     );
 
     // Costa y oleaje del mar oriental
-    world.addEntity(new BeachShore(1460, 600, 140, 466));
+    const beachShore = new BeachShore(1454, 753, 77, 270); world.addEntity(beachShore);
 
     // Troncos de árboles centenarios con colisión física en la base
-    world.addEntity(new TreeEntity(1040, 75, 30, 24));
-    world.addEntity(new TreeEntity(1105, 460, 30, 24));
-    world.addEntity(new TreeEntity(1335, 550, 30, 24));
-    world.addEntity(new TreeEntity(1440, 795, 30, 24));
-    world.addEntity(new TreeEntity(1225, 920, 30, 24));
+    // world.addEntity(new TreeEntity(1040, 75, 30, 24));
+    // world.addEntity(new TreeEntity(1105, 460, 30, 24));
+    // world.addEntity(new TreeEntity(1335, 550, 30, 24));
+    // world.addEntity(new TreeEntity(1440, 795, 30, 24));
+    // world.addEntity(new TreeEntity(1225, 920, 30, 24));
 
     // Sistema de partículas ambientales (pétalos de flores y hojas meciéndose en el viento)
     world.addEntity(new NatureParticleSystem(1600, 1066, 75));

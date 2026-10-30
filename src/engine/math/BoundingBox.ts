@@ -57,6 +57,25 @@ export class BoundingBox {
   }
 
   /**
+   * Checks if this bounding box intersects an elliptical collider (ovaloid).
+   */
+  public intersectsEllipse(other: BoundingBox): boolean {
+    const cx = other.centerX;
+    const cy = other.centerY;
+    const rx = other.width / 2;
+    const ry = other.height / 2;
+    if (rx <= 0 || ry <= 0) return false;
+
+    // Find closest point on this AABB to ellipse center
+    const closestX = Math.max(this.left, Math.min(cx, this.right));
+    const closestY = Math.max(this.top, Math.min(cy, this.bottom));
+
+    const dx = (closestX - cx) / rx;
+    const dy = (closestY - cy) / ry;
+    return dx * dx + dy * dy <= 1.0;
+  }
+
+  /**
    * Checks if a point lies within this bounding box.
    */
   public containsPoint(point: Vector2D): boolean {

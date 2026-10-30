@@ -1,6 +1,5 @@
 import { GameObject } from '../engine/core/GameObject.ts';
 import type { World } from '../engine/world/World.ts';
-import { isCollidable } from '../engine/core/ICollidable.ts';
 
 export interface MapInspectorOptions {
   container: HTMLElement;
@@ -16,6 +15,7 @@ export interface EntityInfo {
   y: number;
   width: number;
   height: number;
+  shape: 'rectangle' | 'oval';
 }
 
 export function getEntityInfo(entity: GameObject): EntityInfo {
@@ -91,18 +91,20 @@ export function getEntityInfo(entity: GameObject): EntityInfo {
     category = 'Colisiones';
   }
 
-  const box = isCollidable(entity) ? entity.getCollider() : entity.getBounds();
   return {
     entity,
     label,
     icon,
     category,
-    x: Math.floor(box.left),
-    y: Math.floor(box.top),
-    width: Math.floor(box.width),
-    height: Math.floor(box.height),
+    x: Math.round(entity.position.x),
+    y: Math.round(entity.position.y),
+    width: Math.round(entity.size.x),
+    height: Math.round(entity.size.y),
+    shape: entity.colliderShape ?? 'rectangle',
   };
 }
+
+type HandleType = 'body' | 'nw' | 'ne' | 'se' | 'sw' | 'n' | 's' | 'e' | 'w';
 
 export class MapInspector {
   private container: HTMLElement;
@@ -116,9 +118,15 @@ export class MapInspector {
   private panX = 0;
   private panY = 0;
   private scale = 0.55;
-  private isDragging = false;
-  private dragStartX = 0;
-  private dragStartY = 0;
+  private isPanning = false;
+  private panStartX = 0;
+  private panStartY = 0;
+
+  // Direct Manipulation / Gizmo Dragging
+  private activeHandle: HandleType | null = null;
+  private isManipulating = false;
+  private dragOrigin = { x: 0, y: 0 };
+  private initialEntityState = { x: 0, y: 0, w: 0, h: 0 };
 
   // Mouse cursor in map coordinates
   private mouseMapX = 0;
@@ -128,6 +136,7 @@ export class MapInspector {
   // Selected & Hovered Entities
   private selectedEntity: GameObject | null = null;
   private hoveredEntity: GameObject | null = null;
+  private hoveredHandle: HandleType | null = null;
 
   // Layer Toggles
   private showBackground = true;
@@ -137,6 +146,7 @@ export class MapInspector {
   private showCollisionMask = false;
   private showForeground = true;
   private showGrid = true;
+  private snapToGrid = false;
 
   // Filter query in sidebar
   private searchQuery = '';
@@ -145,14 +155,16 @@ export class MapInspector {
   private statusCoordsEl!: HTMLElement;
   private zoomBadgeEl!: HTMLElement;
   private entityListContainer!: HTMLElement;
+  private propertyEditorContainer!: HTMLElement;
   private toastEl!: HTMLElement;
+  private exportModalEl!: HTMLElement;
 
   constructor(options: MapInspectorOptions) {
     this.container = options.container;
     this.world = options.world;
     this.buildUI();
     this.attachEvents();
-    // Centrar automáticamente el mapa al inicializar
+
     requestAnimationFrame(() => {
       this.fitToView();
       this.render();
@@ -174,7 +186,7 @@ export class MapInspector {
           <!-- Toolbar Header -->
           <div class="map-inspector-toolbar">
             <div class="toolbar-left">
-              <span class="toolbar-title">🗺️ Inspector de Mapa Global</span>
+              <span class="toolbar-title">🗺️ Inspector & Editor de Objetos</span>
               <span class="badge badge-tech" id="map-res-badge">...</span>
               <span class="badge badge-status" id="map-zoom-badge">100%</span>
             </div>
@@ -186,6 +198,9 @@ export class MapInspector {
             </div>
 
             <div class="toolbar-actions">
+              <button class="inspector-btn" id="btn-export-level" style="background: rgba(16, 185, 129, 0.2); border-color: #10b981; color: #6ee7b7;" title="Generar código de todos los objetos para LevelBuilder.ts">
+                ✨ Exportar LevelBuilder
+              </button>
               <button class="inspector-btn" id="btn-fit-map" title="Ajustar todo el mapa a la pantalla">
                 🔍 Ajustar Todo
               </button>
@@ -222,18 +237,27 @@ export class MapInspector {
               <label class="toggle-chip active" id="toggle-grid">
                 <input type="checkbox" checked /> 📐 Cuadrícula 32px
               </label>
+              <label class="toggle-chip" id="toggle-snap">
+                <input type="checkbox" /> 🧲 Ajustar a Rejilla (Snap 16px)
+              </label>
             </div>
 
             <div class="hint-text">
-              🖱️ <strong>Arrastrar:</strong> Mover mapa • <strong>Rueda:</strong> Zoom • <strong>Clic:</strong> Copiar Coordenadas (X, Y)
+              🖱️ <strong>Clic en objeto:</strong> Seleccionar • <strong>Arrastrar cuerpo:</strong> Mover • <strong>Arrastrar bordes/esquinas:</strong> Redimensionar
             </div>
           </div>
         </div>
 
-        <!-- Sidebar: Entity Inspector & Placement Helper -->
+        <!-- Sidebar: Entity Property Editor & Entity Explorer -->
         <aside class="map-inspector-sidebar">
+          <!-- Property Editor for Selected Entity -->
+          <div class="property-editor-panel" id="property-editor-panel">
+            <!-- Rendered dynamically when entity is selected or not -->
+          </div>
+
+          <!-- Entity Explorer Section -->
           <div class="sidebar-header">
-            <h3>📦 Objetos en el Mapa</h3>
+            <h3>📦 Lista de Objetos</h3>
             <span class="entity-count-badge" id="entity-count-badge">0 objetos</span>
           </div>
 
@@ -241,18 +265,9 @@ export class MapInspector {
             <input 
               type="text" 
               id="inspector-search-input" 
-              placeholder="Filtrar por nombre o tipo..." 
+              placeholder="Buscar objeto por nombre o tipo..." 
               autocomplete="off"
             />
-          </div>
-
-          <!-- Selected Entity Quick Info & Code Snippet -->
-          <div class="selected-entity-box" id="selected-entity-box">
-            <div class="box-title">Selección / Último Clic:</div>
-            <div class="selected-coords" id="selected-coords">Haz clic en el mapa o en un objeto</div>
-            <button class="copy-code-btn" id="btn-copy-code" title="Copiar código para LevelBuilder.ts">
-              📋 Copiar Coordenadas
-            </button>
           </div>
 
           <!-- Scrollable Entity List -->
@@ -261,6 +276,28 @@ export class MapInspector {
           </div>
         </aside>
       </div>
+
+      <!-- Export LevelBuilder Modal -->
+      <div class="export-modal-backdrop" id="export-modal-backdrop" style="display: none;">
+        <div class="export-modal">
+          <div class="modal-header">
+            <h3>✨ Código para LevelBuilder.ts</h3>
+            <button class="modal-close-btn" id="modal-close-btn">✕</button>
+          </div>
+          <div class="modal-body">
+            <p style="font-size: 0.85rem; color: #94a3b8; margin-bottom: 12px;">
+              Copia este bloque de código y reemplázalo en la sección <code>// 4. Objetos interactivos vivos y animados</code> dentro de <code>src/engine/world/LevelBuilder.ts</code>:
+            </p>
+            <textarea id="export-code-textarea" readonly rows="16"></textarea>
+          </div>
+          <div class="modal-footer">
+            <button class="inspector-btn" id="modal-btn-copy" style="background: #10b981; color: #ffffff; border-color: #34d399; font-weight: 700;">
+              📋 Copiar al Portapapeles
+            </button>
+            <button class="inspector-btn" id="modal-btn-done">Cerrar</button>
+          </div>
+        </div>
+      </div>
     `;
 
     this.canvas = this.container.querySelector('#map-inspector-canvas') as HTMLCanvasElement;
@@ -268,9 +305,12 @@ export class MapInspector {
     this.statusCoordsEl = this.container.querySelector('#map-coord-display') as HTMLElement;
     this.zoomBadgeEl = this.container.querySelector('#map-zoom-badge') as HTMLElement;
     this.entityListContainer = this.container.querySelector('#inspector-entity-list') as HTMLElement;
+    this.propertyEditorContainer = this.container.querySelector('#property-editor-panel') as HTMLElement;
     this.toastEl = this.container.querySelector('#inspector-toast') as HTMLElement;
+    this.exportModalEl = this.container.querySelector('#export-modal-backdrop') as HTMLElement;
 
     this.updateMapResolutionBadge();
+    this.renderPropertyEditor();
     this.resizeCanvas();
   }
 
@@ -300,44 +340,171 @@ export class MapInspector {
       this.render();
     });
 
-    // Panning & Mouse interactions
+    // --- MOUSE DOWN: Selection, Handle Grabbing, or Panning ---
     this.canvas.addEventListener('mousedown', (e) => {
-      this.isDragging = true;
-      this.dragStartX = e.clientX - this.panX;
-      this.dragStartY = e.clientY - this.panY;
-      this.canvas.style.cursor = 'grabbing';
-    });
-
-    window.addEventListener('mousemove', (e) => {
-      if (this.isDragging) {
-        this.panX = e.clientX - this.dragStartX;
-        this.panY = e.clientY - this.dragStartY;
-        this.render();
-      }
-    });
-
-    window.addEventListener('mouseup', () => {
-      if (this.isDragging) {
-        this.isDragging = false;
-        this.canvas.style.cursor = 'crosshair';
-      }
-    });
-
-    this.canvas.addEventListener('mousemove', (e) => {
       const rect = this.canvas.getBoundingClientRect();
       const mouseCanvasX = e.clientX - rect.left;
       const mouseCanvasY = e.clientY - rect.top;
+      const mapX = Math.round((mouseCanvasX - this.panX) / this.scale);
+      const mapY = Math.round((mouseCanvasY - this.panY) / this.scale);
 
-      // Transform from screen coords to map coords
-      this.mouseMapX = Math.round((mouseCanvasX - this.panX) / this.scale);
-      this.mouseMapY = Math.round((mouseCanvasY - this.panY) / this.scale);
-      this.isMouseInside = true;
+      // 1. Check if clicking on an interactive handle of the selected entity
+      if (this.selectedEntity) {
+        const handle = this.getHandleAt(mapX, mapY, this.selectedEntity);
+        if (handle) {
+          this.activeHandle = handle;
+          this.isManipulating = true;
+          this.dragOrigin = { x: mapX, y: mapY };
+          this.initialEntityState = {
+            x: this.selectedEntity.position.x,
+            y: this.selectedEntity.position.y,
+            w: this.selectedEntity.size.x,
+            h: this.selectedEntity.size.y,
+          };
+          return;
+        }
+      }
 
-      // Check if hovering over any entity
-      this.hoveredEntity = this.findEntityAt(this.mouseMapX, this.mouseMapY);
+      // 2. Check if clicking on any entity to select it
+      const clickedEntity = this.findEntityAt(mapX, mapY);
+      if (clickedEntity) {
+        this.selectEntity(clickedEntity);
+        this.activeHandle = 'body';
+        this.isManipulating = true;
+        this.dragOrigin = { x: mapX, y: mapY };
+        this.initialEntityState = {
+          x: clickedEntity.position.x,
+          y: clickedEntity.position.y,
+          w: clickedEntity.size.x,
+          h: clickedEntity.size.y,
+        };
+        this.render();
+        return;
+      }
 
+      // 3. Otherwise, click on background: start panning the canvas
+      this.isPanning = true;
+      this.panStartX = e.clientX - this.panX;
+      this.panStartY = e.clientY - this.panY;
+      this.canvas.style.cursor = 'grabbing';
+    });
+
+    // --- MOUSE MOVE: Panning or Manipulating Object ---
+    window.addEventListener('mousemove', (e) => {
+      const rect = this.canvas.getBoundingClientRect();
+      const mouseCanvasX = e.clientX - rect.left;
+      const mouseCanvasY = e.clientY - rect.top;
+      const mapX = Math.round((mouseCanvasX - this.panX) / this.scale);
+      const mapY = Math.round((mouseCanvasY - this.panY) / this.scale);
+
+      this.mouseMapX = mapX;
+      this.mouseMapY = mapY;
       this.updateCoordIndicator();
+
+      // Case A: Panning the map view
+      if (this.isPanning) {
+        this.panX = e.clientX - this.panStartX;
+        this.panY = e.clientY - this.panStartY;
+        this.render();
+        return;
+      }
+
+      // Case B: Manipulating (moving/resizing) the selected entity
+      if (this.isManipulating && this.selectedEntity && this.activeHandle) {
+        let deltaX = mapX - this.dragOrigin.x;
+        let deltaY = mapY - this.dragOrigin.y;
+
+        if (this.snapToGrid) {
+          deltaX = Math.round(deltaX / 16) * 16;
+          deltaY = Math.round(deltaY / 16) * 16;
+        }
+
+        const s = this.initialEntityState;
+        const e = this.selectedEntity;
+
+        switch (this.activeHandle) {
+          case 'body':
+            e.position.x = s.x + deltaX;
+            e.position.y = s.y + deltaY;
+            break;
+          case 'se':
+            e.size.x = Math.max(16, s.w + deltaX);
+            e.size.y = Math.max(16, s.h + deltaY);
+            break;
+          case 'sw':
+            e.position.x = s.x + deltaX;
+            e.size.x = Math.max(16, s.w - deltaX);
+            e.size.y = Math.max(16, s.h + deltaY);
+            break;
+          case 'ne':
+            e.position.y = s.y + deltaY;
+            e.size.x = Math.max(16, s.w + deltaX);
+            e.size.y = Math.max(16, s.h - deltaY);
+            break;
+          case 'nw':
+            e.position.x = s.x + deltaX;
+            e.position.y = s.y + deltaY;
+            e.size.x = Math.max(16, s.w - deltaX);
+            e.size.y = Math.max(16, s.h - deltaY);
+            break;
+          case 'e':
+            e.size.x = Math.max(16, s.w + deltaX);
+            break;
+          case 'w':
+            e.position.x = s.x + deltaX;
+            e.size.x = Math.max(16, s.w - deltaX);
+            break;
+          case 's':
+            e.size.y = Math.max(16, s.h + deltaY);
+            break;
+          case 'n':
+            e.position.y = s.y + deltaY;
+            e.size.y = Math.max(16, s.h - deltaY);
+            break;
+        }
+
+        // Live update input values in property editor
+        this.syncPropertyInputs();
+        this.render();
+        return;
+      }
+
+      // Case C: Hovering around to update cursor styles
+      if (this.selectedEntity) {
+        const handle = this.getHandleAt(mapX, mapY, this.selectedEntity);
+        this.hoveredHandle = handle;
+        if (handle) {
+          this.setCursorForHandle(handle);
+          this.render();
+          return;
+        }
+      }
+
+      const entityUnderCursor = this.findEntityAt(mapX, mapY);
+      this.hoveredEntity = entityUnderCursor;
+      if (entityUnderCursor) {
+        this.canvas.style.cursor = 'pointer';
+      } else {
+        this.canvas.style.cursor = 'crosshair';
+      }
       this.render();
+    });
+
+    // --- MOUSE UP: Finish interaction ---
+    window.addEventListener('mouseup', () => {
+      if (this.isPanning) {
+        this.isPanning = false;
+        this.canvas.style.cursor = 'crosshair';
+      }
+      if (this.isManipulating) {
+        this.isManipulating = false;
+        this.activeHandle = null;
+        this.updateEntityList(); // refresh sidebar list with new positions
+      }
+    });
+
+    this.canvas.addEventListener('mouseenter', () => {
+      this.isMouseInside = true;
     });
 
     this.canvas.addEventListener('mouseleave', () => {
@@ -356,7 +523,6 @@ export class MapInspector {
       const zoomFactor = e.deltaY < 0 ? 1.15 : 1 / 1.15;
       const newScale = Math.max(0.15, Math.min(3.5, this.scale * zoomFactor));
 
-      // Zoom toward cursor
       this.panX = mouseX - (mouseX - this.panX) * (newScale / this.scale);
       this.panY = mouseY - (mouseY - this.panY) * (newScale / this.scale);
       this.scale = newScale;
@@ -364,35 +530,6 @@ export class MapInspector {
       this.updateZoomBadge();
       this.render();
     }, { passive: false });
-
-    // Click to select entity or copy coordinates
-    this.canvas.addEventListener('click', (e) => {
-      const rect = this.canvas.getBoundingClientRect();
-      const mouseCanvasX = e.clientX - rect.left;
-      const mouseCanvasY = e.clientY - rect.top;
-
-      const clickMapX = Math.round((mouseCanvasX - this.panX) / this.scale);
-      const clickMapY = Math.round((mouseCanvasY - this.panY) / this.scale);
-
-      // Check if clicking inside map
-      const w = this.world.tileMap.worldWidth;
-      const h = this.world.tileMap.worldHeight;
-      if (clickMapX < 0 || clickMapX > w || clickMapY < 0 || clickMapY > h) {
-        return;
-      }
-
-      const entity = this.findEntityAt(clickMapX, clickMapY);
-      if (entity) {
-        this.selectEntity(entity);
-      } else {
-        this.selectedEntity = null;
-        this.updateSelectedInfo(clickMapX, clickMapY);
-      }
-
-      // Automatically copy coordinates to clipboard
-      this.copyToClipboard(`X: ${clickMapX}, Y: ${clickMapY}`, `📍 Coordenadas copiadas: (${clickMapX}, ${clickMapY})`);
-      this.render();
-    });
 
     // Toolbar Buttons
     this.container.querySelector('#btn-fit-map')?.addEventListener('click', () => {
@@ -407,15 +544,24 @@ export class MapInspector {
       this.render();
     });
 
-    // Copy Code button in sidebar
-    this.container.querySelector('#btn-copy-code')?.addEventListener('click', () => {
-      if (this.selectedEntity) {
-        const info = getEntityInfo(this.selectedEntity);
-        const code = `new ${this.selectedEntity.constructor.name}(${info.x}, ${info.y})`;
-        this.copyToClipboard(code, `📋 Código copiado: ${code}`);
-      } else {
-        const text = `X: ${this.mouseMapX}, Y: ${this.mouseMapY}`;
-        this.copyToClipboard(text, `📍 Coordenadas copiadas: (${this.mouseMapX}, ${this.mouseMapY})`);
+    // Export LevelBuilder Button
+    this.container.querySelector('#btn-export-level')?.addEventListener('click', () => {
+      this.openExportModal();
+    });
+
+    // Modal Close buttons
+    this.container.querySelector('#modal-close-btn')?.addEventListener('click', () => {
+      this.exportModalEl.style.display = 'none';
+    });
+    this.container.querySelector('#modal-btn-done')?.addEventListener('click', () => {
+      this.exportModalEl.style.display = 'none';
+    });
+
+    // Modal Copy button
+    this.container.querySelector('#modal-btn-copy')?.addEventListener('click', () => {
+      const textarea = this.container.querySelector('#export-code-textarea') as HTMLTextAreaElement;
+      if (textarea) {
+        this.copyToClipboard(textarea.value, '✨ ¡Código completo copiado! Pégalo en LevelBuilder.ts');
       }
     });
 
@@ -426,6 +572,7 @@ export class MapInspector {
     this.bindToggle('#toggle-mask', (active) => { this.showCollisionMask = active; });
     this.bindToggle('#toggle-fg', (active) => { this.showForeground = active; });
     this.bindToggle('#toggle-grid', (active) => { this.showGrid = active; });
+    this.bindToggle('#toggle-snap', (active) => { this.snapToGrid = active; });
 
     // Search filter input
     const searchInput = this.container.querySelector('#inspector-search-input') as HTMLInputElement;
@@ -435,16 +582,69 @@ export class MapInspector {
     });
   }
 
+  private setCursorForHandle(handle: HandleType): void {
+    switch (handle) {
+      case 'nw':
+      case 'se':
+        this.canvas.style.cursor = 'nwse-resize';
+        break;
+      case 'ne':
+      case 'sw':
+        this.canvas.style.cursor = 'nesw-resize';
+        break;
+      case 'n':
+      case 's':
+        this.canvas.style.cursor = 'ns-resize';
+        break;
+      case 'e':
+      case 'w':
+        this.canvas.style.cursor = 'ew-resize';
+        break;
+      case 'body':
+        this.canvas.style.cursor = 'move';
+        break;
+      default:
+        this.canvas.style.cursor = 'crosshair';
+    }
+  }
+
+  private getHandleAt(mapX: number, mapY: number, entity: GameObject): HandleType | null {
+    const x = entity.position.x;
+    const y = entity.position.y;
+    const w = entity.size.x;
+    const h = entity.size.y;
+    const hitRadius = Math.max(6, 9 / this.scale);
+
+    const isNear = (hx: number, hy: number) => {
+      return Math.abs(mapX - hx) <= hitRadius && Math.abs(mapY - hy) <= hitRadius;
+    };
+
+    // 4 Corners
+    if (isNear(x, y)) return 'nw';
+    if (isNear(x + w, y)) return 'ne';
+    if (isNear(x + w, y + h)) return 'se';
+    if (isNear(x, y + h)) return 'sw';
+
+    // 4 Mid-edges
+    if (isNear(x + w / 2, y)) return 'n';
+    if (isNear(x + w / 2, y + h)) return 's';
+    if (isNear(x, y + h / 2)) return 'w';
+    if (isNear(x + w, y + h / 2)) return 'e';
+
+    // Body
+    if (mapX >= x && mapX <= x + w && mapY >= y && mapY <= y + h) {
+      return 'body';
+    }
+
+    return null;
+  }
+
   private bindToggle(selector: string, callback: (active: boolean) => void): void {
     const label = this.container.querySelector(selector) as HTMLElement;
     const input = label?.querySelector('input') as HTMLInputElement;
     if (label && input) {
       input.addEventListener('change', () => {
-        if (input.checked) {
-          label.classList.add('active');
-        } else {
-          label.classList.remove('active');
-        }
+        label.classList.toggle('active', input.checked);
         callback(input.checked);
         this.render();
       });
@@ -452,16 +652,17 @@ export class MapInspector {
   }
 
   private findEntityAt(mapX: number, mapY: number): GameObject | null {
-    // Search in reverse order (top zIndex first)
     for (let i = this.world.entities.length - 1; i >= 0; i--) {
       const entity = this.world.entities[i];
       if (entity.isDestroyed) continue;
-      // Skip global entities spanning the entire map
       if (entity.size.x >= this.world.tileMap.worldWidth && entity.size.y >= this.world.tileMap.worldHeight) {
         continue;
       }
-      const box = isCollidable(entity) ? entity.getCollider() : entity.getBounds();
-      if (mapX >= box.left && mapX <= box.right && mapY >= box.top && mapY <= box.bottom) {
+      const x = entity.position.x;
+      const y = entity.position.y;
+      const w = entity.size.x;
+      const h = entity.size.y;
+      if (mapX >= x && mapX <= x + w && mapY >= y && mapY <= y + h) {
         return entity;
       }
     }
@@ -496,40 +697,15 @@ export class MapInspector {
 
   public focusEntity(entity: GameObject): void {
     this.selectEntity(entity);
-    const box = isCollidable(entity) ? entity.getCollider() : entity.getBounds();
-    const cx = box.left + box.width / 2;
-    const cy = box.top + box.height / 2;
+    const cx = entity.position.x + entity.size.x / 2;
+    const cy = entity.position.y + entity.size.y / 2;
     this.centerOn(cx, cy, Math.max(this.scale, 1.2));
   }
 
   private selectEntity(entity: GameObject): void {
     this.selectedEntity = entity;
-    const info = getEntityInfo(entity);
-    this.updateSelectedInfo(info.x, info.y, info);
+    this.renderPropertyEditor();
     this.highlightSidebarItem(entity);
-  }
-
-  private updateSelectedInfo(x: number, y: number, info?: EntityInfo): void {
-    const selectedCoordsEl = this.container.querySelector('#selected-coords');
-    const copyBtn = this.container.querySelector('#btn-copy-code') as HTMLButtonElement;
-
-    if (!selectedCoordsEl || !copyBtn) return;
-
-    if (info) {
-      selectedCoordsEl.innerHTML = `
-        <div style="font-weight: 700; color: #38bdf8; margin-bottom: 2px;">${info.icon} ${info.label}</div>
-        <div>Posición: <strong>X: ${info.x}</strong>, <strong>Y: ${info.y}</strong></div>
-        <div style="font-size: 0.8rem; color: #94a3b8;">Tamaño: ${info.width} × ${info.height} px</div>
-      `;
-      copyBtn.innerHTML = `📋 Copiar constructor: <code>new ${info.entity.constructor.name}(${info.x}, ${info.y})</code>`;
-    } else {
-      selectedCoordsEl.innerHTML = `
-        <div style="font-weight: 700; color: #f8fafc; margin-bottom: 2px;">📍 Punto en Mapa</div>
-        <div>Posición: <strong>X: ${x}</strong>, <strong>Y: ${y}</strong></div>
-        <div style="font-size: 0.8rem; color: #94a3b8;">Sin objeto en este punto</div>
-      `;
-      copyBtn.innerHTML = `📋 Copiar Coordenadas (${x}, ${y})`;
-    }
   }
 
   private highlightSidebarItem(entity: GameObject): void {
@@ -578,6 +754,336 @@ export class MapInspector {
     }, 2200);
   }
 
+  // --- PROPERTY EDITOR (SIDEBAR) ---
+  private renderPropertyEditor(): void {
+    if (!this.selectedEntity) {
+      this.propertyEditorContainer.innerHTML = `
+        <div class="empty-property-state">
+          <div class="empty-icon">🎯</div>
+          <div class="empty-title">Sin objeto seleccionado</div>
+          <div class="empty-hint">Haz clic en un objeto del mapa o selecciónalo en la lista para editar posición, tamaño y forma.</div>
+        </div>
+      `;
+      return;
+    }
+
+    const info = getEntityInfo(this.selectedEntity);
+    const shape = this.selectedEntity.colliderShape ?? 'rectangle';
+
+    this.propertyEditorContainer.innerHTML = `
+      <div class="prop-editor-card">
+        <div class="prop-header">
+          <span class="prop-icon">${info.icon}</span>
+          <div class="prop-title-group">
+            <div class="prop-title">${info.label}</div>
+            <div class="prop-class"><code>${this.selectedEntity.constructor.name}</code></div>
+          </div>
+        </div>
+
+        <!-- Forma de Colisión: Rectangular vs Ovaloide -->
+        <div class="prop-field-group">
+          <label class="prop-label">Forma del Colisionador:</label>
+          <div class="shape-toggle-group">
+            <button class="shape-btn ${shape === 'rectangle' ? 'active' : ''}" id="btn-shape-rect">
+              ⬛ Rectangular
+            </button>
+            <button class="shape-btn ${shape === 'oval' ? 'active' : ''}" id="btn-shape-oval">
+              ⭕ Ovaloide
+            </button>
+          </div>
+        </div>
+
+        <!-- Posición X & Y -->
+        <div class="prop-grid-2">
+          <div class="prop-field">
+            <label class="prop-label">Posición X:</label>
+            <div class="prop-input-stepper">
+              <input type="number" id="prop-input-x" value="${info.x}" step="1" />
+              <div class="stepper-buttons">
+                <button class="step-btn" data-target="x" data-delta="-10">-10</button>
+                <button class="step-btn" data-target="x" data-delta="-1">-1</button>
+                <button class="step-btn" data-target="x" data-delta="+1">+1</button>
+                <button class="step-btn" data-target="x" data-delta="+10">+10</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="prop-field">
+            <label class="prop-label">Posición Y:</label>
+            <div class="prop-input-stepper">
+              <input type="number" id="prop-input-y" value="${info.y}" step="1" />
+              <div class="stepper-buttons">
+                <button class="step-btn" data-target="y" data-delta="-10">-10</button>
+                <button class="step-btn" data-target="y" data-delta="-1">-1</button>
+                <button class="step-btn" data-target="y" data-delta="+1">+1</button>
+                <button class="step-btn" data-target="y" data-delta="+10">+10</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Dimensiones Ancho & Alto -->
+        <div class="prop-grid-2">
+          <div class="prop-field">
+            <label class="prop-label">Ancho (Width):</label>
+            <div class="prop-input-stepper">
+              <input type="number" id="prop-input-w" value="${info.width}" step="1" min="8" />
+              <div class="stepper-buttons">
+                <button class="step-btn" data-target="w" data-delta="-10">-10</button>
+                <button class="step-btn" data-target="w" data-delta="-1">-1</button>
+                <button class="step-btn" data-target="w" data-delta="+1">+1</button>
+                <button class="step-btn" data-target="w" data-delta="+10">+10</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="prop-field">
+            <label class="prop-label">Alto (Height):</label>
+            <div class="prop-input-stepper">
+              <input type="number" id="prop-input-h" value="${info.height}" step="1" min="8" />
+              <div class="stepper-buttons">
+                <button class="step-btn" data-target="h" data-delta="-10">-10</button>
+                <button class="step-btn" data-target="h" data-delta="-1">-1</button>
+                <button class="step-btn" data-target="h" data-delta="+1">+1</button>
+                <button class="step-btn" data-target="h" data-delta="+10">+10</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="prop-actions">
+          <button class="copy-code-btn" id="btn-copy-entity-code">
+            📋 Copiar Configuración del Objeto
+          </button>
+        </div>
+      </div>
+    `;
+
+    // Shape Button Events
+    const btnRect = this.propertyEditorContainer.querySelector('#btn-shape-rect') as HTMLButtonElement;
+    const btnOval = this.propertyEditorContainer.querySelector('#btn-shape-oval') as HTMLButtonElement;
+
+    btnRect?.addEventListener('click', () => {
+      if (this.selectedEntity) {
+        this.selectedEntity.colliderShape = 'rectangle';
+        btnRect.classList.add('active');
+        btnOval.classList.remove('active');
+        this.render();
+      }
+    });
+
+    btnOval?.addEventListener('click', () => {
+      if (this.selectedEntity) {
+        this.selectedEntity.colliderShape = 'oval';
+        btnOval.classList.add('active');
+        btnRect.classList.remove('active');
+        this.render();
+      }
+    });
+
+    // Inputs direct change
+    const inputX = this.propertyEditorContainer.querySelector('#prop-input-x') as HTMLInputElement;
+    const inputY = this.propertyEditorContainer.querySelector('#prop-input-y') as HTMLInputElement;
+    const inputW = this.propertyEditorContainer.querySelector('#prop-input-w') as HTMLInputElement;
+    const inputH = this.propertyEditorContainer.querySelector('#prop-input-h') as HTMLInputElement;
+
+    const onInputChange = () => {
+      if (!this.selectedEntity) return;
+      this.selectedEntity.position.x = parseFloat(inputX.value) || 0;
+      this.selectedEntity.position.y = parseFloat(inputY.value) || 0;
+      this.selectedEntity.size.x = Math.max(8, parseFloat(inputW.value) || 16);
+      this.selectedEntity.size.y = Math.max(8, parseFloat(inputH.value) || 16);
+      this.render();
+    };
+
+    inputX?.addEventListener('input', onInputChange);
+    inputY?.addEventListener('input', onInputChange);
+    inputW?.addEventListener('input', onInputChange);
+    inputH?.addEventListener('input', onInputChange);
+
+    // Stepper buttons (+1, -1, +10, -10)
+    this.propertyEditorContainer.querySelectorAll('.step-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        if (!this.selectedEntity) return;
+        const target = btn.getAttribute('data-target');
+        const delta = parseInt(btn.getAttribute('data-delta') || '0', 10);
+
+        if (target === 'x') {
+          this.selectedEntity.position.x += delta;
+        } else if (target === 'y') {
+          this.selectedEntity.position.y += delta;
+        } else if (target === 'w') {
+          this.selectedEntity.size.x = Math.max(8, this.selectedEntity.size.x + delta);
+        } else if (target === 'h') {
+          this.selectedEntity.size.y = Math.max(8, this.selectedEntity.size.y + delta);
+        }
+
+        this.syncPropertyInputs();
+        this.render();
+      });
+    });
+
+    // Copy single entity code
+    this.propertyEditorContainer.querySelector('#btn-copy-entity-code')?.addEventListener('click', () => {
+      if (!this.selectedEntity) return;
+      const code = this.generateEntityCode(this.selectedEntity);
+      this.copyToClipboard(code, `📋 Código copiado: ${code}`);
+    });
+  }
+
+  private syncPropertyInputs(): void {
+    if (!this.selectedEntity) return;
+    const inputX = this.propertyEditorContainer.querySelector('#prop-input-x') as HTMLInputElement;
+    const inputY = this.propertyEditorContainer.querySelector('#prop-input-y') as HTMLInputElement;
+    const inputW = this.propertyEditorContainer.querySelector('#prop-input-w') as HTMLInputElement;
+    const inputH = this.propertyEditorContainer.querySelector('#prop-input-h') as HTMLInputElement;
+
+    if (inputX) inputX.value = String(Math.round(this.selectedEntity.position.x));
+    if (inputY) inputY.value = String(Math.round(this.selectedEntity.position.y));
+    if (inputW) inputW.value = String(Math.round(this.selectedEntity.size.x));
+    if (inputH) inputH.value = String(Math.round(this.selectedEntity.size.y));
+  }
+
+  // --- ENTITY CODE GENERATOR ---
+  public generateEntityCode(e: GameObject): string {
+    const className = e.constructor.name;
+    const x = Math.round(e.position.x);
+    const y = Math.round(e.position.y);
+    const w = Math.round(e.size.x);
+    const h = Math.round(e.size.y);
+    const shape = e.colliderShape ?? 'rectangle';
+    const hasOval = shape === 'oval';
+
+    let code = '';
+    if (className === 'WaterFountain') {
+      const cx = Math.round(x + w / 2);
+      const cy = Math.round(y + h / 2);
+      code = `const fountain = new WaterFountain(${cx}, ${cy}, ${w}, ${h});`;
+      if (!hasOval) code += ` fountain.colliderShape = 'rectangle';`;
+      code += ` world.addEntity(fountain);`;
+      return code;
+    }
+
+    if (className === 'Fireplace') {
+      code = `const fire = new Fireplace(${x}, ${y}, ${w}, ${h});`;
+      if (hasOval) code += ` fire.colliderShape = 'oval';`;
+      code += ` world.addEntity(fire);`;
+      return code;
+    }
+
+    if (className === 'Footbridge') {
+      code = `const bridge = new Footbridge(${x}, ${y}, ${w}, ${h});`;
+      if (hasOval) code += ` bridge.colliderShape = 'oval';`;
+      code += ` world.addEntity(bridge);`;
+      return code;
+    }
+
+    if (className === 'KitchenStove') {
+      code = `const stove = new KitchenStove(${x}, ${y}, ${w}, ${h});`;
+      if (hasOval) code += ` stove.colliderShape = 'oval';`;
+      code += ` world.addEntity(stove);`;
+      return code;
+    }
+
+    if (className === 'BedEntity') {
+      const bedName = (e as any).bedName || 'Cama';
+      code = `const bed = new BedEntity(${x}, ${y}, ${w}, ${h}, '${bedName}');`;
+      if (hasOval) code += ` bed.colliderShape = 'oval';`;
+      code += ` world.addEntity(bed);`;
+      return code;
+    }
+
+    if (className === 'PicnicTable') {
+      code = `const table = new PicnicTable(${x}, ${y}, ${w}, ${h});`;
+      if (hasOval) code += ` table.colliderShape = 'oval';`;
+      code += ` world.addEntity(table);`;
+      return code;
+    }
+
+    if (className === 'GardenBench') {
+      code = `const bench = new GardenBench(${x}, ${y}, ${w}, ${h});`;
+      if (hasOval) code += ` bench.colliderShape = 'oval';`;
+      code += ` world.addEntity(bench);`;
+      return code;
+    }
+
+    if (className === 'BookshelfEntity') {
+      const bk = e as any;
+      const title = bk.bookTitle || 'Crónicas';
+      const desc = bk.bookDescription || '';
+      code = `const shelf = new BookshelfEntity(${x}, ${y}, ${w}, ${h}, '${title}', '${desc}');`;
+      if (hasOval) code += ` shelf.colliderShape = 'oval';`;
+      code += ` world.addEntity(shelf);`;
+      return code;
+    }
+
+    if (className === 'TreasureChest') {
+      const c = e as any;
+      const keyId = c.requiredKeyId || 'iron_key';
+      code = `const chest = new TreasureChest(${x}, ${y}, '${keyId}', ${w}, ${h});`;
+      if (hasOval) code += ` chest.colliderShape = 'oval';`;
+      code += ` world.addEntity(chest);`;
+      return code;
+    }
+
+    if (className === 'KeyItem') {
+      const k = e as any;
+      const keyId = k.keyId || 'golden_key';
+      const keyName = k.keyName || 'Llave';
+      code = `const key = new KeyItem(${x}, ${y}, assets.keySprite, '${keyId}', '${keyName}', ${w}, ${h});`;
+      if (hasOval) code += ` key.colliderShape = 'oval';`;
+      code += ` world.addEntity(key);`;
+      return code;
+    }
+
+    if (className === 'Door') {
+      const d = e as any;
+      const keyId = d.requiredKeyId || 'golden_key';
+      const doorName = d.doorName || 'Puerta';
+      code = `const door = new Door(${x}, ${y}, null, null, '${keyId}', ${w}, ${h}, '${doorName}');`;
+      if (hasOval) code += ` door.colliderShape = 'oval';`;
+      code += ` world.addEntity(door);`;
+      return code;
+    }
+
+    if (className === 'Player') {
+      return `// Jugador: Posición inicial\nplayer.position.set(${x}, ${y});`;
+    }
+
+    // Default GameObject
+    code = `const obj = new ${className}(${x}, ${y}, ${w}, ${h});`;
+    if (hasOval) code += ` obj.colliderShape = 'oval';`;
+    code += ` world.addEntity(obj);`;
+    return code;
+  }
+
+  // --- EXPORT ENTIRE LEVEL ---
+  private openExportModal(): void {
+    const entities = this.world.entities.filter(
+      (e) => !e.isDestroyed && !(e.size.x >= this.world.tileMap.worldWidth && e.size.y >= this.world.tileMap.worldHeight)
+    );
+
+    let fullCode = `    // ==========================================================================\n`;
+    fullCode += `    // 4. Objetos interactivos vivos y animados (Exportado desde Map Inspector)\n`;
+    fullCode += `    // ==========================================================================\n\n`;
+
+    for (const e of entities) {
+      if (e.constructor.name === 'Player') continue;
+      const comment = getEntityInfo(e).label;
+      fullCode += `    // ${comment}\n`;
+      fullCode += `    ${this.generateEntityCode(e)}\n\n`;
+    }
+
+    const textarea = this.container.querySelector('#export-code-textarea') as HTMLTextAreaElement;
+    if (textarea) {
+      textarea.value = fullCode;
+    }
+
+    this.exportModalEl.style.display = 'flex';
+  }
+
+  // --- ENTITY LIST (SIDEBAR) ---
   public updateEntityList(): void {
     if (!this.entityListContainer) return;
 
@@ -592,7 +1098,6 @@ export class MapInspector {
 
     const infos: EntityInfo[] = validEntities.map((e) => getEntityInfo(e));
 
-    // Filter by search query
     const filtered = this.searchQuery
       ? infos.filter(
           (i) =>
@@ -617,6 +1122,8 @@ export class MapInspector {
       card.className = `entity-card ${this.selectedEntity === info.entity ? 'active' : ''}`;
       (card as any)._entity = info.entity;
 
+      const shapeIcon = info.shape === 'oval' ? '⭕ Oval' : '⬛ Rect';
+
       card.innerHTML = `
         <div class="card-header">
           <span class="card-icon">${info.icon}</span>
@@ -628,6 +1135,7 @@ export class MapInspector {
         <div class="card-body">
           <span class="pos-badge">📍 (${info.x}, ${info.y})</span>
           <span class="size-badge">📐 ${info.width}×${info.height}</span>
+          <span class="shape-badge">${shapeIcon}</span>
           <button class="card-btn-focus" title="Centrar cámara en este objeto">🎯 Centrar</button>
         </div>
       `;
@@ -658,6 +1166,7 @@ export class MapInspector {
     }
   }
 
+  // --- RENDER CYCLE ---
   public render(): void {
     if (!this.ctx || !this.canvas) return;
 
@@ -688,7 +1197,6 @@ export class MapInspector {
     if (this.showBackground && this.world.tileMap.backgroundImage) {
       ctx.drawImage(this.world.tileMap.backgroundImage, 0, 0, mapW, mapH);
     } else {
-      // Checkerboard placeholder if background disabled
       ctx.fillStyle = '#1e293b';
       ctx.fillRect(0, 0, mapW, mapH);
     }
@@ -723,8 +1231,6 @@ export class MapInspector {
 
     // 5. Entities (Sprites & Visual Representation)
     if (this.showEntities) {
-
-      // Render entities sorted by depth
       const sortedEntities = [...this.world.entities].filter(
         (e) => !e.isDestroyed && !(e.size.x >= mapW && e.size.y >= mapH)
       );
@@ -743,12 +1249,17 @@ export class MapInspector {
       ctx.drawImage(this.world.tileMap.foregroundImage, 0, 0, mapW, mapH);
     }
 
-    // 7. Red Debug Borders & Object Badges
+    // 7. Red Debug Borders & Object Badges (with Oval / Rect shapes)
     if (this.showBorders) {
       this.renderEntityOverlays(ctx);
     }
 
-    // 8. Crosshair & Coordinate Guides at Cursor
+    // 8. Transform Gizmo for Selected Entity
+    if (this.selectedEntity) {
+      this.renderGizmo(ctx, this.selectedEntity);
+    }
+
+    // 9. Crosshair & Coordinate Guides at Cursor
     if (this.isMouseInside && this.mouseMapX >= 0 && this.mouseMapX <= mapW && this.mouseMapY >= 0 && this.mouseMapY <= mapH) {
       ctx.save();
       ctx.strokeStyle = 'rgba(56, 189, 248, 0.65)';
@@ -812,36 +1323,50 @@ export class MapInspector {
     );
 
     for (const entity of entities) {
-      const info = getEntityInfo(entity);
       const isSelected = entity === this.selectedEntity;
       const isHovered = entity === this.hoveredEntity;
+      const info = getEntityInfo(entity);
+      const isOval = entity.colliderShape === 'oval';
 
-      const x = info.x;
-      const y = info.y;
-      const w = info.width;
-      const h = info.height;
+      const x = Math.round(entity.position.x);
+      const y = Math.round(entity.position.y);
+      const w = Math.round(entity.size.x);
+      const h = Math.round(entity.size.y);
 
-      // Border styling
+      // Border colors
       if (isSelected) {
-        ctx.strokeStyle = '#facc15'; // Gold for selected
+        ctx.strokeStyle = '#facc15'; // Gold
         ctx.lineWidth = 2.5 / this.scale;
-        ctx.fillStyle = 'rgba(250, 204, 21, 0.25)';
+        ctx.fillStyle = 'rgba(250, 204, 21, 0.2)';
       } else if (isHovered) {
-        ctx.strokeStyle = '#38bdf8'; // Cyan for hovered
+        ctx.strokeStyle = '#38bdf8'; // Cyan
         ctx.lineWidth = 2 / this.scale;
-        ctx.fillStyle = 'rgba(56, 189, 248, 0.2)';
+        ctx.fillStyle = 'rgba(56, 189, 248, 0.18)';
       } else {
         ctx.strokeStyle = '#ef4444'; // Red default
         ctx.lineWidth = 1.5 / this.scale;
         ctx.fillStyle = 'rgba(239, 68, 68, 0.12)';
       }
 
-      ctx.fillRect(x, y, w, h);
-      ctx.strokeRect(x, y, w, h);
+      // Draw Shape: Oval vs Rect
+      if (isOval) {
+        const cx = Math.floor(x + w / 2);
+        const cy = Math.floor(y + h / 2);
+        const rx = Math.floor(w / 2);
+        const ry = Math.floor(h / 2);
+        ctx.beginPath();
+        ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+      } else {
+        ctx.fillRect(x, y, w, h);
+        ctx.strokeRect(x, y, w, h);
+      }
 
       // Label Badge
       if (this.showLabels) {
-        const fullLabel = `${info.label} (${x}, ${y})`;
+        const shapeIndicator = isOval ? '⭕ ' : '';
+        const fullLabel = `${shapeIndicator}${info.label} (${x}, ${y})`;
         const textWidth = ctx.measureText(fullLabel).width;
         const badgePadding = 6 / this.scale;
         const badgeW = textWidth + badgePadding * 2;
@@ -849,7 +1374,6 @@ export class MapInspector {
         const badgeX = Math.floor(x + (w - badgeW) / 2);
         const badgeY = Math.floor(y - badgeH - 3 / this.scale);
 
-        // Badge background
         ctx.fillStyle = isSelected
           ? 'rgba(20, 25, 40, 0.95)'
           : isHovered
@@ -863,11 +1387,50 @@ export class MapInspector {
         ctx.fill();
         ctx.stroke();
 
-        // Badge text
         ctx.fillStyle = isSelected ? '#facc15' : '#ffffff';
         ctx.textAlign = 'center';
         ctx.fillText(fullLabel, badgeX + badgeW / 2, badgeY + badgeH / 2);
       }
+    }
+
+    ctx.restore();
+  }
+
+  // --- RENDER TRANSFORM GIZMO ---
+  private renderGizmo(ctx: CanvasRenderingContext2D, entity: GameObject): void {
+    ctx.save();
+    const x = entity.position.x;
+    const y = entity.position.y;
+    const w = entity.size.x;
+    const h = entity.size.y;
+    const handleSize = Math.max(5, 7 / this.scale);
+
+    // Glowing bounding frame
+    ctx.strokeStyle = '#facc15';
+    ctx.lineWidth = 2 / this.scale;
+    ctx.setLineDash([4 / this.scale, 3 / this.scale]);
+    ctx.strokeRect(x, y, w, h);
+    ctx.setLineDash([]);
+
+    // Draw handles (4 corners + 4 edges)
+    const handles = [
+      { type: 'nw', hx: x, hy: y },
+      { type: 'ne', hx: x + w, hy: y },
+      { type: 'se', hx: x + w, hy: y + h },
+      { type: 'sw', hx: x, hy: y + h },
+      { type: 'n', hx: x + w / 2, hy: y },
+      { type: 's', hx: x + w / 2, hy: y + h },
+      { type: 'w', hx: x, hy: y + h / 2 },
+      { type: 'e', hx: x + w, hy: y + h / 2 },
+    ];
+
+    for (const { type, hx, hy } of handles) {
+      const isHover = this.hoveredHandle === type || this.activeHandle === type;
+      ctx.fillStyle = isHover ? '#38bdf8' : '#ffffff';
+      ctx.strokeStyle = '#0f172a';
+      ctx.lineWidth = 1.5 / this.scale;
+      ctx.fillRect(hx - handleSize / 2, hy - handleSize / 2, handleSize, handleSize);
+      ctx.strokeRect(hx - handleSize / 2, hy - handleSize / 2, handleSize, handleSize);
     }
 
     ctx.restore();
