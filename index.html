@@ -42,6 +42,11 @@
           <span class="tab-icon">🎮</span>
           <span>Juego</span>
         </button>
+        <button class="nav-tab" id="tab-map" role="tab" aria-selected="false" aria-controls="view-map">
+          <span class="tab-icon">🗺️</span>
+          <span>Mapa Completo</span>
+          <span class="tab-badge" style="background: rgba(56, 189, 248, 0.2); color: #38bdf8; border-color: rgba(56, 189, 248, 0.4);">Inspector</span>
+        </button>
         <button class="nav-tab" id="tab-paint" role="tab" aria-selected="false" aria-controls="view-paint">
           <span class="tab-icon">🎨</span>
           <span>Tile Studio (Paint XP)</span>
@@ -140,7 +145,12 @@
         </main>
       </section>
 
-      <!-- View 2: Tile Studio / MS Paint XP -->
+      <!-- View 2: Global Map Overview & Object Inspector -->
+      <section id="view-map" class="tab-view" role="tabpanel" aria-labelledby="tab-map">
+        <div id="map-inspector-mount"></div>
+      </section>
+
+      <!-- View 3: Tile Studio / MS Paint XP -->
       <section id="view-paint" class="tab-view" role="tabpanel" aria-labelledby="tab-paint">
         <div id="tile-studio-mount"></div>
       </section>

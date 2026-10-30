@@ -3,6 +3,7 @@ import { GameEngine } from './engine/core/GameEngine.ts';
 import { LevelBuilder } from './engine/world/LevelBuilder.ts';
 import { AssetManager } from './engine/graphics/AssetManager.ts';
 import { TileStudio } from './editor/TileStudio.ts';
+import { MapInspector } from './editor/MapInspector.ts';
 
 window.addEventListener('DOMContentLoaded', async () => {
   const canvas = document.getElementById('game-canvas') as HTMLCanvasElement;
@@ -150,32 +151,49 @@ window.addEventListener('DOMContentLoaded', async () => {
     });
   }
 
-  // 8. Tab Navigation Logic (Juego vs Tile Studio)
+  // 8. Initialize Map Inspector (Global Map & Entity Inspector)
+  const mapInspectorMount = document.getElementById('map-inspector-mount');
+  let mapInspector: MapInspector | null = null;
+  if (mapInspectorMount) {
+    mapInspector = new MapInspector({
+      container: mapInspectorMount,
+      world,
+    });
+  }
+
+  // 9. Tab Navigation Logic (Juego vs Mapa Completo vs Tile Studio)
   const tabGame = document.getElementById('tab-game') as HTMLButtonElement;
+  const tabMap = document.getElementById('tab-map') as HTMLButtonElement;
   const tabPaint = document.getElementById('tab-paint') as HTMLButtonElement;
   const viewGame = document.getElementById('view-game') as HTMLElement;
+  const viewMap = document.getElementById('view-map') as HTMLElement;
   const viewPaint = document.getElementById('view-paint') as HTMLElement;
 
-  const switchTab = (activeTab: 'game' | 'paint'): void => {
+  const tabs: Record<'game' | 'map' | 'paint', { tab: HTMLButtonElement; view: HTMLElement }> = {
+    game: { tab: tabGame, view: viewGame },
+    map: { tab: tabMap, view: viewMap },
+    paint: { tab: tabPaint, view: viewPaint },
+  };
+
+  const switchTab = (activeTab: 'game' | 'map' | 'paint'): void => {
+    (['game', 'map', 'paint'] as const).forEach((t) => {
+      const isActive = t === activeTab;
+      tabs[t].tab?.classList.toggle('active', isActive);
+      tabs[t].tab?.setAttribute('aria-selected', String(isActive));
+      tabs[t].view?.classList.toggle('active', isActive);
+    });
+
     if (activeTab === 'game') {
-      tabGame.classList.add('active');
-      tabGame.setAttribute('aria-selected', 'true');
-      tabPaint.classList.remove('active');
-      tabPaint.setAttribute('aria-selected', 'false');
-
-      viewGame.classList.add('active');
-      viewPaint.classList.remove('active');
-
       canvas.focus();
-    } else {
-      tabPaint.classList.add('active');
-      tabPaint.setAttribute('aria-selected', 'true');
-      tabGame.classList.remove('active');
-      tabGame.setAttribute('aria-selected', 'false');
-
-      viewPaint.classList.add('active');
-      viewGame.classList.remove('active');
-
+    } else if (activeTab === 'map') {
+      if (mapInspector) {
+        requestAnimationFrame(() => {
+          mapInspector?.setWorld(world);
+          mapInspector?.fitToView();
+          mapInspector?.render();
+        });
+      }
+    } else if (activeTab === 'paint') {
       if (tileStudio) {
         tileStudio.render();
       }
@@ -183,5 +201,6 @@ window.addEventListener('DOMContentLoaded', async () => {
   };
 
   tabGame?.addEventListener('click', () => switchTab('game'));
+  tabMap?.addEventListener('click', () => switchTab('map'));
   tabPaint?.addEventListener('click', () => switchTab('paint'));
 });
