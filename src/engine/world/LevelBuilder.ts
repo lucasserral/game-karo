@@ -18,6 +18,7 @@ import { NatureParticleSystem } from '../entities/NatureParticleSystem.ts';
 import { PhotoTable } from '../entities/PhotoTable.ts';
 import { PhotoFragmentItem } from '../entities/PhotoFragmentItem.ts';
 import { FishingRodEntity } from '../entities/FishingRodEntity.ts';
+import { QuizPaperEntity } from '../entities/QuizPaperEntity.ts';
 import type { InputManager } from '../core/InputManager.ts';
 
 /**
@@ -126,6 +127,10 @@ export class LevelBuilder {
     // Minijuego 2: Caña de pescar en el muelle en (1272, 343)
     const fishingRod = new FishingRodEntity(1272, 343, 32, 32);
     world.addEntity(fishingRod);
+
+    // Minijuego 3: Papel con formulario de preguntas en la mesa en (415, 145)
+    const quizPaper = new QuizPaperEntity(415, 145, 38, 28);
+    world.addEntity(quizPaper);
 
     // Puerta del Invernadero de Cristal (requiere Llave de Cristal)
     world.addEntity(

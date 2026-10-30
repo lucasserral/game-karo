@@ -347,6 +347,8 @@ export class World {
         label = `Fragmento Foto #${frag.fragmentIndex}`;
       } else if (className === 'FishingRodEntity') {
         label = 'Caña de Pescar (Muelle)';
+      } else if (className === 'QuizPaperEntity') {
+        label = 'Papel de Preguntas (Mesa)';
       }
 
       // 3. Renderizar etiqueta flotante sobre el objeto

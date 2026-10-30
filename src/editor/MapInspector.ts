@@ -102,6 +102,10 @@ export function getEntityInfo(entity: GameObject): EntityInfo {
     label = 'Caña de Pescar (Muelle)';
     icon = '🎣';
     category = 'Minijuegos';
+  } else if (className === 'QuizPaperEntity') {
+    label = 'Papel de Preguntas (Mesa)';
+    icon = '💌';
+    category = 'Minijuegos';
   }
 
   return {
