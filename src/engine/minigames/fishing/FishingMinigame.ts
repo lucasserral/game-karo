@@ -49,7 +49,7 @@ export class FishingMinigame implements IMinigame {
         rarity: 'legendario',
       };
       player.addFishingCatch(keyCatch);
-      player.setNotification('🎉 [DEBUG] ¡Pescaste la llave key_2 del fondo del lago!', 4.5);
+      player.setNotification('🎉 ¡Pescaste la llave key_2 del fondo del lago!', 4.5);
     }
   }
 

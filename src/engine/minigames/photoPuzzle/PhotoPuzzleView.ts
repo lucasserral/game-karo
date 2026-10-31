@@ -105,16 +105,6 @@ export class PhotoPuzzleView {
                 </p>
               `
               }
-
-              ${
-                !isCompleted
-                  ? `
-                <button class="btn-debug-skip" id="btn-debug-key1" title="Modo Debugging: Obtener llave key_1">
-                  ⚡ [Debug: Obtener Llave key_1]
-                </button>
-              `
-                  : ''
-              }
             </div>
           </div>
         </div>
@@ -125,16 +115,6 @@ export class PhotoPuzzleView {
     const btnClose = container.querySelector('#btn-close-parchment');
     btnClose?.addEventListener('click', () => {
       MinigameManager.getInstance().closeMinigame();
-    });
-
-    const btnDebug = container.querySelector('#btn-debug-key1');
-    btnDebug?.addEventListener('click', () => {
-      player.photoFragments.add(1);
-      player.photoFragments.add(2);
-      player.photoFragments.add(3);
-      player.photoFragments.add(4);
-      this.minigame.rewardPlayer(player);
-      this.render(container, player);
     });
 
     const btnAssemble = container.querySelector('#btn-assemble-photo');
