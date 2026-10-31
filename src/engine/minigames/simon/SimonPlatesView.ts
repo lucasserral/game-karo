@@ -109,7 +109,7 @@ export class SimonPlatesView {
               <span class="simon-header-icon">🍽️</span>
               <div>
                 <h4>Platos de Colores</h4>
-                <span class="simon-coords">(80, 400) • Alacena de la Mansión</span>
+                <span class="simon-coords">(99, 600) • Alacena de la Mansión</span>
               </div>
             </div>
             <button class="simon-close-btn" id="btn-close-simon" title="Cerrar alacena" aria-label="Cerrar">✕</button>

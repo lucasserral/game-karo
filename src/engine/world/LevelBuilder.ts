@@ -108,7 +108,7 @@ export class LevelBuilder {
     const goldenkey = new KeyItem(839, 557, assets.keySprite, 'golden_key', 'Llave Dorada', 28, 28); world.addEntity(goldenkey);
 
     // 2. Llave de Hierro en la tabla de la cocina
-    const ironkey = new KeyItem(654, 105, assets.keySprite, 'iron_key', 'Llave de Hierro', 28, 28); world.addEntity(ironkey);
+    const ironkey = new KeyItem(920, 316, assets.keySprite, 'iron_key', 'Llave de Hierro', 28, 28); world.addEntity(ironkey);
 
     // 3. Llave de Cristal en la orilla del estanque
     const crystalkey = new KeyItem(224, 55, assets.keySprite, 'crystal_key', 'Llave de Cristal', 28, 28); world.addEntity(crystalkey);
@@ -117,19 +117,21 @@ export class LevelBuilder {
     // Puertas de la Mansión (se abren con la Llave Marina key_2 pescada en el lago)
     const door = new Door(609, 610, null, null, 'key_2', 50, 18, 'Puertas de la Mansión'); world.addEntity(door);
 
+    const door2 = new Door(870, 390, null, null, 'iron_key', 50, 18, 'Puertas traseras'); world.addEntity(door2);
+
     // Minijuego 1: Mesa con nota y rompecabezas de foto en (240, 740)
     const photoTable = new PhotoTable(240, 740, 25, 36)
     world.addEntity(photoTable);
 
     // 4 Pedacitos de fotos repartidos por el mapa
     // 1. Fragmento 1: Biblioteca/Estudio norte
-    world.addEntity(new PhotoFragmentItem(920, 240, 1));
+    world.addEntity(new PhotoFragmentItem(920, 250, 1));
     // 2. Fragmento 2: Patio de la fuente central
-    world.addEntity(new PhotoFragmentItem(680, 520, 2));
+    world.addEntity(new PhotoFragmentItem(904, 600, 2));
     // 3. Fragmento 3: Suite con dosel occidental
     world.addEntity(new PhotoFragmentItem(105, 150, 3));
     // 4. Fragmento 4: Costa y arena oriental
-    world.addEntity(new PhotoFragmentItem(1380, 830, 4));
+    world.addEntity(new PhotoFragmentItem(125, 405, 4));
 
     // Minijuego 2: Caña de pescar en el muelle en (1272, 343)
     const fishingRod = new FishingRodEntity(1272, 343, 32, 32);
@@ -144,10 +146,36 @@ export class LevelBuilder {
     world.addEntity(memoryBoard);
 
     // Minijuego 5: Secuencia de platos de colores en (80, 400)
-    const simonPlates = new SimonPlatesEntity(80, 400, 44, 34);
+    const simonPlates = new SimonPlatesEntity(99, 600, 44, 34);
     world.addEntity(simonPlates);
 
     // Puerta del Invernadero de Cristal (requiere Llave de Cristal)
+    world.addEntity(
+      new Door(
+        373,
+        865,
+        null,
+        null,
+        'key_5',
+        48,
+        18,
+        'Puerta principal'
+      )
+    );
+
+    world.addEntity(
+      new Door(
+        91,
+        720,
+        null,
+        null,
+        'key_2',
+        48,
+        18,
+        'Puerta de la cocina exterior'
+      )
+    );
+
     world.addEntity(
       new Door(
         885,

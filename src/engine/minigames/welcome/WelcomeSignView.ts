@@ -135,7 +135,7 @@ export class WelcomeSignView {
                       ${hasKey5 ? '✓ Obtenida' : '🔑 key_5'}
                     </span>
                   </div>
-                  <span class="challenge-coord">Coord: (80, 400) • Repite la melodía y colores a velocidad creciente</span>
+                  <span class="challenge-coord">Coord: (99, 600) • Repite la melodía y colores a velocidad creciente</span>
                 </div>
               </div>
             </div>
