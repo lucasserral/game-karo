@@ -21,6 +21,7 @@ import { FishingRodEntity } from '../entities/FishingRodEntity.ts';
 import { QuizPaperEntity } from '../entities/QuizPaperEntity.ts';
 import { MemoryBoardEntity } from '../entities/MemoryBoardEntity.ts';
 import { SimonPlatesEntity } from '../entities/SimonPlatesEntity.ts';
+import { WelcomeSignEntity } from '../entities/WelcomeSignEntity.ts';
 import type { InputManager } from '../core/InputManager.ts';
 
 /**
@@ -57,6 +58,10 @@ export class LevelBuilder {
     player.facingDirection = 'up';
 
     const world = new World(tileMap, player);
+
+    // Cartel y nota interactiva en la entrada (al lado del jugador)
+    const welcomeSign = new WelcomeSignEntity(340, 945, 36, 38);
+    world.addEntity(welcomeSign);
 
     // 3. Asignar la Máscara de Colisión de píxel perfecto adaptada a la resolución
     world.collisionMask = assets.createCollisionMask(mapWidth, mapHeight);
@@ -109,8 +114,8 @@ export class LevelBuilder {
     const crystalkey = new KeyItem(224, 55, assets.keySprite, 'crystal_key', 'Llave de Cristal', 28, 28); world.addEntity(crystalkey);
 
     // Puertas y verjas con cerrojo
-    // Verja de Hierro del Jardín Secreto (requiere Llave de Hierro)
-    const door = new Door(609, 610, null, null, 'iron_key', 50, 18, 'Verja del Jardín Secreto'); world.addEntity(door);
+    // Puertas de la Mansión (se abren con la Llave Marina key_2 pescada en el lago)
+    const door = new Door(609, 610, null, null, 'key_2', 50, 18, 'Puertas de la Mansión'); world.addEntity(door);
 
     // Minijuego 1: Mesa con nota y rompecabezas de foto en (240, 740)
     const photoTable = new PhotoTable(240, 740, 25, 36)

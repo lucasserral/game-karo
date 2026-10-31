@@ -63,14 +63,28 @@ export class Door extends GameObject implements ICollidable, IInteractive {
       return { success: false, message: 'Solo el jugador puede abrir la puerta.' };
     }
 
-    if (initiator.hasKey(this.requiredKeyId)) {
-      initiator.consumeKey(this.requiredKeyId);
+    const hasRequiredKey =
+      initiator.hasKey(this.requiredKeyId) ||
+      (this.requiredKeyId === 'key_2' && initiator.hasKey('iron_key')) ||
+      (this.requiredKeyId === 'iron_key' && initiator.hasKey('key_2'));
+
+    if (hasRequiredKey) {
+      const keyToUse = initiator.hasKey(this.requiredKeyId)
+        ? this.requiredKeyId
+        : initiator.hasKey('key_2')
+          ? 'key_2'
+          : 'iron_key';
+
+      // Las llaves especiales de la aventura (key_1 a key_5) permanecen en el inventario como logros
+      if (!keyToUse.startsWith('key_')) {
+        initiator.consumeKey(keyToUse);
+      }
       this.isUnlocked = true;
       initiator.setNotification(`🔓 ¡${this.doorName} desbloqueada y abierta!`, 3.5);
       return {
         success: true,
         message: `¡Has usado la llave para abrir la ${this.doorName}!`,
-        consumedItem: this.requiredKeyId,
+        consumedItem: keyToUse,
       };
     }
 
@@ -86,8 +100,15 @@ export class Door extends GameObject implements ICollidable, IInteractive {
       return '';
     }
 
-    if (initiator instanceof Player && initiator.hasKey(this.requiredKeyId)) {
-      return `🔓 [E] Abrir ${this.doorName} con Llave`;
+    if (initiator instanceof Player) {
+      const hasKey =
+        initiator.hasKey(this.requiredKeyId) ||
+        (this.requiredKeyId === 'key_2' && initiator.hasKey('iron_key')) ||
+        (this.requiredKeyId === 'iron_key' && initiator.hasKey('key_2'));
+
+      if (hasKey) {
+        return `🔓 [E] Abrir ${this.doorName} con Llave`;
+      }
     }
 
     return `🔒 ${this.doorName} cerrada (Requiere Llave)`;

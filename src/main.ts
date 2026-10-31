@@ -10,6 +10,7 @@ import { FishingMinigame } from './engine/minigames/fishing/FishingMinigame.ts';
 import { QuizMinigame } from './engine/minigames/quiz/QuizMinigame.ts';
 import { MemoryMinigame } from './engine/minigames/memory/MemoryMinigame.ts';
 import { SimonPlatesMinigame } from './engine/minigames/simon/SimonPlatesMinigame.ts';
+import { WelcomeSignMinigame } from './engine/minigames/welcome/WelcomeSignMinigame.ts';
 
 window.addEventListener('DOMContentLoaded', async () => {
   const canvas = document.getElementById('game-canvas') as HTMLCanvasElement;
@@ -107,6 +108,7 @@ window.addEventListener('DOMContentLoaded', async () => {
   minigameManager.registerMinigame(new QuizMinigame());
   minigameManager.registerMinigame(new MemoryMinigame());
   minigameManager.registerMinigame(new SimonPlatesMinigame());
+  minigameManager.registerMinigame(new WelcomeSignMinigame());
 
   let frameCount = 0;
   let lastFpsUpdate = performance.now();

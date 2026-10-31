@@ -114,6 +114,10 @@ export function getEntityInfo(entity: GameObject): EntityInfo {
     label = 'Alacena de Platos (Secuencia)';
     icon = '🍽️';
     category = 'Minijuegos';
+  } else if (className === 'WelcomeSignEntity') {
+    label = 'Cartel de la Entrada (Misión Karolina)';
+    icon = '🪧';
+    category = 'Guías & Carteles';
   }
 
   return {
