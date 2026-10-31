@@ -111,13 +111,15 @@ export class LevelBuilder {
     const ironkey = new KeyItem(920, 316, assets.keySprite, 'iron_key', 'Llave de Hierro', 28, 28); world.addEntity(ironkey);
 
     // 3. Llave de Cristal en la orilla del estanque
-    const crystalkey = new KeyItem(224, 55, assets.keySprite, 'crystal_key', 'Llave de Cristal', 28, 28); world.addEntity(crystalkey);
+    const crystalkey = new KeyItem(224, 55, assets.keySprite, 'room_key', 'Llave de la habitacion', 28, 28); world.addEntity(crystalkey);
 
     // Puertas y verjas con cerrojo
     // Puertas de la Mansión (se abren con la Llave Marina key_2 pescada en el lago)
     const door = new Door(609, 610, null, null, 'key_2', 50, 18, 'Puertas de la Mansión'); world.addEntity(door);
 
     const door2 = new Door(870, 390, null, null, 'iron_key', 50, 18, 'Puertas traseras'); world.addEntity(door2);
+
+    const door3 = new Door(160, 144, null, null, 'room_key', 18, 50, 'Puerta Vertical', 'vertical'); world.addEntity(door3);
 
     // Minijuego 1: Mesa con nota y rompecabezas de foto en (240, 740)
     const photoTable = new PhotoTable(240, 740, 25, 36)

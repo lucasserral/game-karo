@@ -1070,7 +1070,8 @@ export class MapInspector {
       const d = e as any;
       const keyId = d.requiredKeyId || 'golden_key';
       const doorName = d.doorName || 'Puerta';
-      code = `const door = new Door(${x}, ${y}, null, null, '${keyId}', ${w}, ${h}, '${doorName}');`;
+      const orientParam = d.orientation === 'vertical' ? `, 'vertical'` : '';
+      code = `const door = new Door(${x}, ${y}, null, null, '${keyId}', ${w}, ${h}, '${doorName}'${orientParam});`;
       if (hasOval) code += ` door.colliderShape = 'oval';`;
       code += ` world.addEntity(door);`;
       return code;
