@@ -19,6 +19,7 @@ import { PhotoTable } from '../entities/PhotoTable.ts';
 import { PhotoFragmentItem } from '../entities/PhotoFragmentItem.ts';
 import { FishingRodEntity } from '../entities/FishingRodEntity.ts';
 import { QuizPaperEntity } from '../entities/QuizPaperEntity.ts';
+import { MemoryBoardEntity } from '../entities/MemoryBoardEntity.ts';
 import type { InputManager } from '../core/InputManager.ts';
 
 /**
@@ -131,6 +132,10 @@ export class LevelBuilder {
     // Minijuego 3: Papel con formulario de preguntas en la mesa en (415, 145)
     const quizPaper = new QuizPaperEntity(415, 145, 38, 28);
     world.addEntity(quizPaper);
+
+    // Minijuego 4: Tablero con cartas de memoria en (970, 370)
+    const memoryBoard = new MemoryBoardEntity(970, 370, 44, 34);
+    world.addEntity(memoryBoard);
 
     // Puerta del Invernadero de Cristal (requiere Llave de Cristal)
     world.addEntity(

@@ -349,6 +349,8 @@ export class World {
         label = 'Caña de Pescar (Muelle)';
       } else if (className === 'QuizPaperEntity') {
         label = 'Papel de Preguntas (Mesa)';
+      } else if (className === 'MemoryBoardEntity') {
+        label = 'Tablero de Memoria (Cartas)';
       }
 
       // 3. Renderizar etiqueta flotante sobre el objeto

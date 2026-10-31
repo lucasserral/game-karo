@@ -106,6 +106,10 @@ export function getEntityInfo(entity: GameObject): EntityInfo {
     label = 'Papel de Preguntas (Mesa)';
     icon = '💌';
     category = 'Minijuegos';
+  } else if (className === 'MemoryBoardEntity') {
+    label = 'Tablero de Memoria (Cartas)';
+    icon = '🃏';
+    category = 'Minijuegos';
   }
 
   return {

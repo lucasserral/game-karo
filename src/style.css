@@ -2784,6 +2784,314 @@ body {
   color: #9f1239;
 }
 
+/* ========================================================
+   MINIGAMES: 3D CARD MEMORY MATCHING GAME
+   ======================================================== */
+.memory-widget-wrapper {
+  position: relative;
+  width: 100%;
+  animation: parchmentDropIn 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.memory-card-board {
+  background: var(--bg-card);
+  backdrop-filter: blur(14px);
+  border: 1.5px solid rgba(250, 204, 21, 0.35);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5), 0 0 20px rgba(250, 204, 21, 0.12);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  transition: all 0.3s ease;
+}
+
+.memory-card-board.board-completed-glow {
+  border-color: #facc15;
+  box-shadow: 0 0 25px rgba(250, 204, 21, 0.45), inset 0 0 25px rgba(250, 204, 21, 0.1);
+}
+
+.memory-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.memory-title-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.memory-header-icon {
+  font-size: 1.5rem;
+}
+
+.memory-title-group h4 {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0;
+}
+
+.memory-coords {
+  font-size: 0.74rem;
+  color: #94a3b8;
+  font-family: var(--font-mono);
+}
+
+.memory-close-btn {
+  background: transparent;
+  border: none;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #94a3b8;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.memory-close-btn:hover {
+  background: rgba(239, 68, 68, 0.2);
+  color: #f87171;
+  transform: scale(1.1);
+}
+
+/* Stats Row */
+.memory-stats-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.memory-stat-pill {
+  font-size: 0.78rem;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.7);
+  border: 1px solid rgba(250, 204, 21, 0.25);
+  color: #e2e8f0;
+}
+
+.memory-stat-pill strong {
+  color: #facc15;
+}
+
+.memory-btn-restart {
+  background: #1e293b;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #94a3b8;
+  font-size: 0.76rem;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.memory-btn-restart:hover {
+  background: #334155;
+  color: #ffffff;
+  border-color: #facc15;
+}
+
+/* Grid 4x4 */
+.memory-grid-4x4 {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  width: 100%;
+  perspective: 900px;
+}
+
+.memory-card-item {
+  aspect-ratio: 1 / 1.15;
+  position: relative;
+  cursor: pointer;
+  user-select: none;
+  transition: transform 0.2s ease;
+}
+
+.memory-card-item:hover:not(.is-flipped):not(.is-matched) {
+  transform: translateY(-2px) scale(1.03);
+}
+
+.card-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  text-align: center;
+  transition: transform 0.45s cubic-bezier(0.4, 0, 0.2, 1);
+  transform-style: preserve-3d;
+  border-radius: 8px;
+}
+
+.memory-card-item.is-flipped .card-inner,
+.memory-card-item.is-matched .card-inner {
+  transform: rotateY(180deg);
+}
+
+.card-face {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.35);
+}
+
+/* Card Back (Dorso) */
+.card-back {
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  border: 1.5px solid #d97706;
+  color: #fbbf24;
+}
+
+.card-back-pattern {
+  font-size: 1.4rem;
+  opacity: 0.85;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
+  transition: transform 0.2s ease;
+}
+
+.memory-card-item:hover .card-back-pattern {
+  transform: scale(1.15);
+}
+
+/* Card Front (Símbolo descubierto) */
+.card-front {
+  background: linear-gradient(135deg, #ffffff 0%, #f1f5f9 100%);
+  border: 1.5px solid #cbd5e1;
+  transform: rotateY(180deg);
+  gap: 2px;
+  padding: 4px;
+}
+
+.card-symbol {
+  font-size: 1.6rem;
+  line-height: 1;
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.15));
+}
+
+.card-name {
+  font-size: 0.58rem;
+  font-weight: 700;
+  color: #334155;
+  font-family: var(--font-mono);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 90%;
+}
+
+/* Matched Card State */
+.memory-card-item.is-matched .card-front {
+  border-color: #10b981;
+  background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+  box-shadow: 0 0 12px rgba(16, 185, 129, 0.45);
+}
+
+.memory-card-item.is-matched {
+  cursor: default;
+  animation: matchBounce 0.4s ease;
+}
+
+@keyframes matchBounce {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.06); }
+}
+
+/* Success View */
+.memory-success-banner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 12px;
+  padding: 10px 4px;
+  animation: successFade 0.35s ease;
+}
+
+.memory-trophy-icon {
+  font-size: 2.6rem;
+  animation: trophyBounce 1.5s infinite ease-in-out;
+}
+
+@keyframes trophyBounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
+.memory-success-banner h3 {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #ffffff;
+  margin: 0;
+}
+
+.memory-success-banner p {
+  font-size: 0.84rem;
+  color: var(--text-secondary);
+  line-height: 1.45;
+  margin: 0;
+}
+
+.memory-reward-pill {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: rgba(16, 185, 129, 0.15);
+  border: 1.5px solid #10b981;
+  border-radius: 8px;
+  text-align: left;
+  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.25);
+}
+
+.memory-reward-pill strong {
+  font-size: 0.95rem;
+  color: #34d399;
+  display: block;
+  margin-bottom: 2px;
+}
+
+.memory-reward-pill span {
+  font-size: 0.78rem;
+  color: #a7f3d0;
+}
+
+.memory-btn-playagain {
+  width: 100%;
+  padding: 10px 14px;
+  background: linear-gradient(135deg, #d97706, #b45309);
+  color: #ffffff;
+  border: 1px solid #fef3c7;
+  border-radius: 6px;
+  font-family: 'Outfit', system-ui, sans-serif;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(180, 83, 9, 0.35);
+  transition: all 0.2s ease;
+}
+
+.memory-btn-playagain:hover {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  transform: translateY(-1px);
+}
+
+
 
 
 

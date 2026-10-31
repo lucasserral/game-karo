@@ -8,6 +8,7 @@ import { MinigameManager } from './engine/minigames/MinigameManager.ts';
 import { PhotoPuzzleMinigame } from './engine/minigames/photoPuzzle/PhotoPuzzleMinigame.ts';
 import { FishingMinigame } from './engine/minigames/fishing/FishingMinigame.ts';
 import { QuizMinigame } from './engine/minigames/quiz/QuizMinigame.ts';
+import { MemoryMinigame } from './engine/minigames/memory/MemoryMinigame.ts';
 
 window.addEventListener('DOMContentLoaded', async () => {
   const canvas = document.getElementById('game-canvas') as HTMLCanvasElement;
@@ -103,6 +104,7 @@ window.addEventListener('DOMContentLoaded', async () => {
   minigameManager.registerMinigame(new PhotoPuzzleMinigame('/game1/assets/photo.png'));
   minigameManager.registerMinigame(new FishingMinigame());
   minigameManager.registerMinigame(new QuizMinigame());
+  minigameManager.registerMinigame(new MemoryMinigame());
 
   let frameCount = 0;
   let lastFpsUpdate = performance.now();
@@ -114,6 +116,7 @@ window.addEventListener('DOMContentLoaded', async () => {
     key_1: { label: 'Llave del Retrato (key_1)', icon: '🗝️' },
     key_2: { label: 'Llave Marina (key_2)', icon: '🗝️' },
     key_3: { label: 'Llave del Corazón (key_3)', icon: '🗝️' },
+    key_4: { label: 'Llave de las Cartas (key_4)', icon: '🗝️' },
   };
 
   const updateHUD = (): void => {
