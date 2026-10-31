@@ -55,8 +55,8 @@ export class WelcomeSignView {
                 <strong>Pista Inicial de la Finca</strong>
               </div>
               <p class="hint-body">
-                Las imponentes puertas de la mansión permanecen selladas. 
-                <span class="hint-highlight">La primera llave a conseguir para abrir las puertas de la mansión es pescando en el lago</span>.
+                Para avanzar en tu aventura, 
+                <span class="hint-highlight">la primera llave a conseguir para abrir la cocina (donde están los platos) es pescando en el lago</span>.
               </p>
               <div class="hint-location-pill">
                 <span>📍 Muelle Oriental: Coordenadas <strong>(1272, 343)</strong></span>
@@ -79,7 +79,7 @@ export class WelcomeSignView {
                       ${hasKey2 ? '✓ Obtenida' : '🔑 key_2'}
                     </span>
                   </div>
-                  <span class="challenge-coord">Coord: (1272, 343) • ¡Primera llave para entrar a la mansión!</span>
+                  <span class="challenge-coord">Coord: (1272, 343) • Abre la Puerta de la Cocina (donde están los platos)</span>
                 </div>
               </div>
 
@@ -93,7 +93,7 @@ export class WelcomeSignView {
                       ${hasKey1 ? '✓ Obtenida' : '🔑 key_1'}
                     </span>
                   </div>
-                  <span class="challenge-coord">Coord: (240, 740) • Reúne los 4 pedacitos de foto (${player.photoFragments.size}/4)</span>
+                  <span class="challenge-coord">Coord: (240, 740) • Reúne los 4 pedacitos (${player.photoFragments.size}/4) • Abre el Cofre del Tesoro</span>
                 </div>
               </div>
 
@@ -107,7 +107,7 @@ export class WelcomeSignView {
                       ${hasKey3 ? '✓ Obtenida' : '🔑 key_3'}
                     </span>
                   </div>
-                  <span class="challenge-coord">Coord: (415, 145) • Preguntas sobre nuestra historia</span>
+                  <span class="challenge-coord">Coord: (415, 145) • Preguntas de historia • Abre la Puerta del Cristalero</span>
                 </div>
               </div>
 
@@ -121,7 +121,7 @@ export class WelcomeSignView {
                       ${hasKey4 ? '✓ Obtenida' : '🔑 key_4'}
                     </span>
                   </div>
-                  <span class="challenge-coord">Coord: (970, 370) • Encuentra todas las parejas de símbolos</span>
+                  <span class="challenge-coord">Coord: (928, 345) • Parejas de cartas • Abre la Puerta de la Fuente</span>
                 </div>
               </div>
 
@@ -135,7 +135,7 @@ export class WelcomeSignView {
                       ${hasKey5 ? '✓ Obtenida' : '🔑 key_5'}
                     </span>
                   </div>
-                  <span class="challenge-coord">Coord: (99, 600) • Repite la melodía y colores a velocidad creciente</span>
+                  <span class="challenge-coord">Coord: (99, 600) • Melodía de 16 notas • Abre la Puerta Principal</span>
                 </div>
               </div>
             </div>

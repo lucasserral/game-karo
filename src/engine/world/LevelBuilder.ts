@@ -100,22 +100,19 @@ export class LevelBuilder {
 
     const shelf4 = new BookshelfEntity(210, 835, 123, 25, 'Antología de Leyendas Marítimas', 'Narra el mito del cofre sagrado oculto en las ruinas del jardín secreto septentrional.'); world.addEntity(shelf4);
 
-    // Cofre del Tesoro en el jardín secreto del norte
-    const chest1 = new TreasureChest(528, 488, 'iron_key', 36, 30); world.addEntity(chest1);
+    // Cofre del Tesoro en el jardín secreto del norte (se abre con la Llave del Retrato key_1)
+    const chest1 = new TreasureChest(528, 488, 'key_1', 36, 30); world.addEntity(chest1);
 
     // Llaves coleccionables dispersas en la finca
-    // 1. Llave Dorada en el escritorio del estudio
-    const goldenkey = new KeyItem(839, 557, assets.keySprite, 'golden_key', 'Llave Dorada', 28, 28); world.addEntity(goldenkey);
-
-    // 2. Llave de Hierro en la tabla de la cocina
+    // 1. Llave de Hierro en la tabla de la cocina
     const ironkey = new KeyItem(920, 316, assets.keySprite, 'iron_key', 'Llave de Hierro', 28, 28); world.addEntity(ironkey);
 
-    // 3. Llave de Cristal en la orilla del estanque
+    // 2. Llave de la habitación en la orilla del estanque
     const crystalkey = new KeyItem(224, 55, assets.keySprite, 'room_key', 'Llave de la habitacion', 28, 28); world.addEntity(crystalkey);
 
     // Puertas y verjas con cerrojo
-    // Puertas de la Mansión (se abren con la Llave Marina key_2 pescada en el lago)
-    const door = new Door(609, 610, null, null, 'key_2', 50, 18, 'Puertas de la Mansión'); world.addEntity(door);
+    // Puerta de la Fuente (se abre con la Llave de las Cartas key_4 del juego de memoria)
+    const door = new Door(609, 610, null, null, 'key_4', 50, 18, 'Puerta de la Fuente'); world.addEntity(door);
 
     const door2 = new Door(870, 390, null, null, 'iron_key', 50, 18, 'Puertas traseras'); world.addEntity(door2);
 
@@ -165,6 +162,7 @@ export class LevelBuilder {
       )
     );
 
+    // Puerta de la cocina donde están los platos (se abre con la Llave Marina key_2 pescada en el lago)
     world.addEntity(
       new Door(
         91,
@@ -174,20 +172,21 @@ export class LevelBuilder {
         'key_2',
         48,
         18,
-        'Puerta de la cocina exterior'
+        'Puerta de la cocina'
       )
     );
 
+    // Puerta del Cristalero (se abre con la Llave del Corazón key_3 de los recuerdos)
     world.addEntity(
       new Door(
         885,
         655,
         null,
         null,
-        'crystal_key',
+        'key_3',
         48,
         18,
-        'Puerta del Invernadero'
+        'Puerta del Cristalero'
       )
     );
 

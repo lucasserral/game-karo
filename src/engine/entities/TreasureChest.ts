@@ -43,9 +43,11 @@ export class TreasureChest extends GameObject implements ICollidable, IInteracti
     }
 
     if (initiator.hasKey(this.requiredKeyId)) {
-      initiator.consumeKey(this.requiredKeyId);
+      if (!this.requiredKeyId.startsWith('key_')) {
+        initiator.consumeKey(this.requiredKeyId);
+      }
       this.isOpen = true;
-      initiator.setNotification('🎉 ¡Cofre abierto! Has encontrado el Amuleto de Esmeralda y 500 monedas de oro.', 5);
+      initiator.setNotification('🎉 ¡Cofre abierto con la Llave del Retrato! Has encontrado el Amuleto de Esmeralda y el Tesoro de Karo.', 5);
       return {
         success: true,
         message: '¡Has abierto el cofre del tesoro!',
@@ -53,10 +55,11 @@ export class TreasureChest extends GameObject implements ICollidable, IInteracti
       };
     }
 
-    initiator.setNotification('🔒 El cofre está cerrado con un candado de hierro pesado. ¡Busca la Llave de Hierro!', 3.5);
+    const keyName = this.requiredKeyId === 'key_1' ? 'Llave del Retrato (key_1)' : 'Llave de Hierro';
+    initiator.setNotification(`🔒 El cofre está sellado con cerrojo. ¡Requiere la ${keyName}!`, 3.5);
     return {
       success: false,
-      message: 'Necesitas la Llave de Hierro para abrir este cofre.',
+      message: `Necesitas la ${keyName} para abrir este cofre.`,
     };
   }
 
@@ -65,9 +68,9 @@ export class TreasureChest extends GameObject implements ICollidable, IInteracti
       return '';
     }
     if (initiator instanceof Player && initiator.hasKey(this.requiredKeyId)) {
-      return '💎 [E] Abrir Cofre con Llave de Hierro';
+      return '💎 [E] Abrir Cofre con Llave';
     }
-    return '🔒 Cofre Cerrado (Requiere Llave de Hierro)';
+    return '🔒 Cofre Cerrado (Requiere Llave)';
   }
 
   public override update(_dt: number): void {}
