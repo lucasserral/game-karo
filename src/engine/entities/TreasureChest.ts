@@ -6,19 +6,55 @@ import type { Camera } from '../core/Camera.ts';
 import { Player } from './Player.ts';
 
 import { getKeyClue } from '../world/KeyClues.ts';
+import { KarolinaEntity } from './KarolinaEntity.ts';
 
 /**
  * TreasureChest: Cofre de roble con herrajes de latón oculto en el jardín secreto.
  * Requiere una llave para abrirse y recompensa al explorador con el Tesoro de Karo.
+ * Al abrirse, aparece Karolina a su lado derecho con mensaje romántico y celebración de victoria.
  */
 export class TreasureChest extends GameObject implements ICollidable, IInteractive {
   public isOpen = false;
   public readonly requiredKeyId: string;
   public readonly interactionRadius = 50;
+  public karolina: KarolinaEntity | null = null;
+  public world: { addEntity: (e: GameObject) => void } | null = null;
 
-  constructor(x = 880, y = 70, requiredKeyId = 'iron_key', width = 36, height = 30) {
+  constructor(
+    x = 880,
+    y = 70,
+    requiredKeyId = 'iron_key',
+    width = 36,
+    height = 30,
+    world?: { addEntity: (e: GameObject) => void }
+  ) {
     super(x, y, width, height, 8);
     this.requiredKeyId = requiredKeyId;
+    this.world = world ?? null;
+  }
+
+  public setWorld(world: { addEntity: (e: GameObject) => void }): void {
+    this.world = world;
+    if (this.isOpen && this.karolina) {
+      world.addEntity(this.karolina);
+    }
+  }
+
+  public spawnKarolina(player?: Player): KarolinaEntity {
+    if (this.karolina) {
+      if (player && !this.karolina.targetPlayer) {
+        this.karolina.targetPlayer = player;
+      }
+      return this.karolina;
+    }
+    // Aparece inmediatamente al lado derecho del cofre:
+    const kX = Math.floor(this.position.x + this.size.x + 10);
+    const kY = Math.floor(this.position.y - 12);
+    this.karolina = new KarolinaEntity(kX, kY, 36, 46, player ?? null);
+    if (this.world && typeof this.world.addEntity === 'function') {
+      this.world.addEntity(this.karolina);
+    }
+    return this.karolina;
   }
 
   public isSolid(): boolean {
@@ -52,10 +88,11 @@ export class TreasureChest extends GameObject implements ICollidable, IInteracti
         initiator.consumeKey(this.requiredKeyId);
       }
       this.isOpen = true;
-      initiator.setNotification('🎉 ¡Cofre abierto con la Llave del Retrato! Has encontrado el Amuleto de Esmeralda y el Tesoro de Karo.', 5);
+      this.spawnKarolina(initiator);
+      initiator.setNotification('❤️ Karolina: "Te amo. Gracias por ser como sos"', 5.0);
       return {
         success: true,
-        message: '¡Has abierto el cofre del tesoro!',
+        message: '¡Has abierto el cofre del tesoro y encontrado a Karolina!',
         consumedItem: this.requiredKeyId,
       };
     }
@@ -91,7 +128,16 @@ export class TreasureChest extends GameObject implements ICollidable, IInteracti
     return `🔒 [E] Cofre del Tesoro cerrado (Requiere ${keyLabel})`;
   }
 
-  public override update(_dt: number): void {}
+  public override update(dt: number): void {
+    if (this.isOpen) {
+      if (!this.karolina) {
+        this.spawnKarolina();
+      }
+      if (this.karolina && !this.world) {
+        this.karolina.update(dt);
+      }
+    }
+  }
 
   public override render(ctx: CanvasRenderingContext2D, _camera: Camera): void {
     const x = Math.floor(this.position.x);
@@ -145,5 +191,10 @@ export class TreasureChest extends GameObject implements ICollidable, IInteracti
     }
 
     ctx.restore();
+
+    // Si Karolina no está registrada en el array de entidades del mundo, dibujarla como entidad adjunta
+    if (this.isOpen && this.karolina && !this.world) {
+      this.karolina.render(ctx, _camera);
+    }
   }
 }

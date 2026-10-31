@@ -101,7 +101,7 @@ export class LevelBuilder {
     const shelf4 = new BookshelfEntity(210, 835, 123, 25, 'Antología de Leyendas Marítimas', 'Narra el mito del cofre sagrado oculto en las ruinas del jardín secreto septentrional.'); world.addEntity(shelf4);
 
     // Cofre del Tesoro en el jardín secreto del norte (se abre con la Llave del Retrato key_1)
-    const chest1 = new TreasureChest(528, 488, 'key_1', 36, 30); world.addEntity(chest1);
+    const chest1 = new TreasureChest(528, 488, 'key_1', 36, 30, world); world.addEntity(chest1);
 
     // Llaves coleccionables dispersas en la finca
     // 1. Llave de Hierro en la tabla de la cocina
