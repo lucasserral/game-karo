@@ -20,12 +20,12 @@ window.addEventListener('DOMContentLoaded', async () => {
 
   // 1. Preload assets (hero sprites, custom tileset, and the estate map)
   try {
-    await AssetManager.getInstance().loadHeroSpriteSheet('/sprites/hero.png');
-    await AssetManager.getInstance().loadHeroIdleSprite('/sprites/hero-idle.png');
-    await AssetManager.getInstance().loadCustomTileset('/sprites/tileset.png');
-    await AssetManager.getInstance().loadEstateMap('/maps/estate-map.webp');
-    await AssetManager.getInstance().loadCollisionMask('/maps/estate-collision.png');
-    await AssetManager.getInstance().loadEstateForeground('/maps/estate-foreground.png');
+    await AssetManager.getInstance().loadHeroSpriteSheet('sprites/hero.png');
+    await AssetManager.getInstance().loadHeroIdleSprite('sprites/hero-idle.png');
+    await AssetManager.getInstance().loadCustomTileset('sprites/tileset.png');
+    await AssetManager.getInstance().loadEstateMap('maps/estate-map.webp');
+    await AssetManager.getInstance().loadCollisionMask('maps/estate-collision.png');
+    await AssetManager.getInstance().loadEstateForeground('maps/estate-foreground.png');
     console.log('Game assets loaded successfully.');
   } catch (err) {
     console.warn('Using procedural fallbacks for missing assets:', err);
@@ -103,7 +103,7 @@ window.addEventListener('DOMContentLoaded', async () => {
   if (defaultSidebar && minigameContainer) {
     minigameManager.setContainers(defaultSidebar, minigameContainer);
   }
-  minigameManager.registerMinigame(new PhotoPuzzleMinigame('/game1/assets/photo.png'));
+  minigameManager.registerMinigame(new PhotoPuzzleMinigame('game1/assets/photo.png'));
   minigameManager.registerMinigame(new FishingMinigame());
   minigameManager.registerMinigame(new QuizMinigame());
   minigameManager.registerMinigame(new MemoryMinigame());

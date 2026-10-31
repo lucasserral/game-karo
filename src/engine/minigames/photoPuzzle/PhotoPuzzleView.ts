@@ -1,6 +1,7 @@
 import type { Player } from '../../entities/Player.ts';
 import type { PhotoPuzzleMinigame } from './PhotoPuzzleMinigame.ts';
 import { MinigameManager } from '../MinigameManager.ts';
+import { AssetManager } from '../../graphics/AssetManager.ts';
 
 /**
  * Renders the vintage sheet of paper ("hoja") in the sidebar with the 1:1 photo puzzle.
@@ -9,9 +10,9 @@ export class PhotoPuzzleView {
   private minigame: PhotoPuzzleMinigame;
   private photoUrl: string;
 
-  constructor(minigame: PhotoPuzzleMinigame, photoUrl = '/game1/assets/photo.png') {
+  constructor(minigame: PhotoPuzzleMinigame, photoUrl = 'game1/assets/photo.png') {
     this.minigame = minigame;
-    this.photoUrl = photoUrl;
+    this.photoUrl = AssetManager.getInstance().resolveUrl(photoUrl);
   }
 
   public render(container: HTMLElement, player: Player): void {

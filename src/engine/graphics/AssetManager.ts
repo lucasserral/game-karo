@@ -259,6 +259,20 @@ export class AssetManager {
     });
   }
 
+  public resolveUrl(url: string): string {
+    if (
+      url.startsWith('http://') ||
+      url.startsWith('https://') ||
+      url.startsWith('data:') ||
+      url.startsWith('blob:')
+    ) {
+      return url;
+    }
+    const base = import.meta.env.BASE_URL || './';
+    const clean = url.startsWith('/') ? url.slice(1) : url;
+    return `${base}${clean}`;
+  }
+
   /**
    * Carga una hoja de sprites externa (como /sprites/hero.png) y mapea sus fotogramas.
    * La hoja tiene 8 columnas de animación por 4 filas direccionales:
@@ -267,12 +281,13 @@ export class AssetManager {
    * Fila 2: Abajo (down)
    * Fila 3: Arriba (up)
    */
-  public async loadHeroSpriteSheet(url = '/sprites/hero.png'): Promise<void> {
+  public async loadHeroSpriteSheet(url = 'sprites/hero.png'): Promise<void> {
+    const finalUrl = this.resolveUrl(url);
     const img = new Image();
-    img.src = url;
+    img.src = finalUrl;
     await new Promise<void>((resolve, reject) => {
       img.onload = () => resolve();
-      img.onerror = (e) => reject(new Error(`Error cargando imagen en ${url}: ${e}`));
+      img.onerror = (e) => reject(new Error(`Error cargando imagen en ${finalUrl}: ${e}`));
     });
 
     // Cargar metadatos si existen
@@ -281,7 +296,7 @@ export class AssetManager {
     let directions: Array<'down' | 'up' | 'left' | 'right'> = ['down', 'up', 'left', 'right'];
 
     try {
-      const res = await fetch('/sprites/hero.json');
+      const res = await fetch(this.resolveUrl('sprites/hero.json'));
       if (res.ok) {
         const meta = await res.json();
         if (meta.cols) cols = meta.cols;
@@ -308,10 +323,11 @@ export class AssetManager {
 
   public heroIdleSprite: Sprite | null = null;
 
-  public async loadHeroIdleSprite(url = '/sprites/hero-idle.png'): Promise<void> {
+  public async loadHeroIdleSprite(url = 'sprites/hero-idle.png'): Promise<void> {
+    const finalUrl = this.resolveUrl(url);
     try {
       const img = new Image();
-      img.src = url;
+      img.src = finalUrl;
       await new Promise<void>((resolve, reject) => {
         img.onload = () => resolve();
         img.onerror = () => reject(new Error('No idle sprite found'));
@@ -326,9 +342,10 @@ export class AssetManager {
    * Carga una imagen de tileset externa (como /sprites/tileset.png) para reemplazar
    * los sprites del entorno (suelo, paredes, pilares, puertas y llave).
    */
-  public async loadCustomTileset(url = '/sprites/tileset.png', tileSize = 32): Promise<void> {
+  public async loadCustomTileset(url = 'sprites/tileset.png', tileSize = 32): Promise<void> {
+    const finalUrl = this.resolveUrl(url);
     try {
-      const sheet = await SpriteSheet.load(url, tileSize, tileSize);
+      const sheet = await SpriteSheet.load(finalUrl, tileSize, tileSize);
       this.floorSprite = sheet.getSprite(0, 0);
       this.wallSprite = sheet.getSprite(1, 0);
       this.wallTopSprite = sheet.getSprite(2, 0);
@@ -336,9 +353,9 @@ export class AssetManager {
       this.doorClosedSprite = sheet.getSprite(0, 1);
       this.doorOpenSprite = sheet.getSprite(1, 1);
       this.keySprite = sheet.getSprite(2, 1);
-      console.log(`Tileset cargado exitosamente desde ${url}`);
+      console.log(`Tileset cargado exitosamente desde ${finalUrl}`);
     } catch (err) {
-      console.warn(`No se encontró tileset en ${url}, manteniendo gráficos generados.`, err);
+      console.warn(`No se encontró tileset en ${finalUrl}, manteniendo gráficos generados.`, err);
     }
   }
 
@@ -349,16 +366,17 @@ export class AssetManager {
   /**
    * Carga la imagen de alta definición del mapa de la finca (map-expectation).
    */
-  public async loadEstateMap(url = '/maps/estate-map.webp'): Promise<HTMLImageElement> {
+  public async loadEstateMap(url = 'maps/estate-map.webp'): Promise<HTMLImageElement> {
+    const finalUrl = this.resolveUrl(url);
     const img = new Image();
-    img.src = url;
+    img.src = finalUrl;
     await new Promise<void>((resolve, reject) => {
       img.onload = () => resolve();
       img.onerror = () => {
         // Intento de respaldo con formato PNG
-        img.src = '/maps/estate-map.png';
+        img.src = this.resolveUrl('maps/estate-map.png');
         img.onload = () => resolve();
-        img.onerror = (e) => reject(new Error(`No se pudo cargar la imagen del mapa en ${url}: ${e}`));
+        img.onerror = (e) => reject(new Error(`No se pudo cargar la imagen del mapa en ${finalUrl}: ${e}`));
       };
     });
     this.estateMapImage = img;
@@ -369,15 +387,16 @@ export class AssetManager {
    * Carga la capa de primer plano / dosel (overhead canopy layer) que se dibuja sobre el jugador y objetos.
    * Si el archivo no existe todavía, no arroja error para permitir que el juego continúe con normalidad.
    */
-  public async loadEstateForeground(url = '/maps/estate-foreground.png'): Promise<HTMLImageElement | null> {
+  public async loadEstateForeground(url = 'maps/estate-foreground.png'): Promise<HTMLImageElement | null> {
+    const finalUrl = this.resolveUrl(url);
     const img = new Image();
-    img.src = url;
+    img.src = finalUrl;
     const loaded = await new Promise<boolean>((resolve) => {
       img.onload = () => resolve(true);
       img.onerror = () => {
         // Intento de respaldo con formato WebP
         const fallback = new Image();
-        fallback.src = '/maps/estate-foreground.webp';
+        fallback.src = this.resolveUrl('maps/estate-foreground.webp');
         fallback.onload = () => {
           this.estateForegroundImage = fallback;
           resolve(true);
@@ -401,12 +420,13 @@ export class AssetManager {
   /**
    * Carga la imagen de máscara de colisión (blanco = transitable, negro = obstáculo).
    */
-  public async loadCollisionMask(url = '/maps/estate-collision.png'): Promise<HTMLImageElement> {
+  public async loadCollisionMask(url = 'maps/estate-collision.png'): Promise<HTMLImageElement> {
+    const finalUrl = this.resolveUrl(url);
     const img = new Image();
-    img.src = url;
+    img.src = finalUrl;
     await new Promise<void>((resolve, reject) => {
       img.onload = () => resolve();
-      img.onerror = (e) => reject(new Error(`No se pudo cargar la máscara de colisión en ${url}: ${e}`));
+      img.onerror = (e) => reject(new Error(`No se pudo cargar la máscara de colisión en ${finalUrl}: ${e}`));
     });
     this.collisionMaskImage = img;
     return img;

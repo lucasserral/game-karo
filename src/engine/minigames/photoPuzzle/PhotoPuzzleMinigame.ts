@@ -14,7 +14,7 @@ export class PhotoPuzzleMinigame implements IMinigame {
 
   private view: PhotoPuzzleView;
 
-  constructor(photoUrl = '/game1/assets/photo.png') {
+  constructor(photoUrl = 'game1/assets/photo.png') {
     this.view = new PhotoPuzzleView(this, photoUrl);
   }
 
