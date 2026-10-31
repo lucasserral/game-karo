@@ -5,6 +5,7 @@ import type { IInteractive, InteractionResult } from '../core/IInteractive.ts';
 import type { Sprite } from '../graphics/Sprite.ts';
 import type { Camera } from '../core/Camera.ts';
 import { Player } from './Player.ts';
+import { getKeyClue } from '../world/KeyClues.ts';
 
 export type DoorOrientation = 'horizontal' | 'vertical';
 
@@ -70,21 +71,35 @@ export class Door extends GameObject implements ICollidable, IInteractive {
       return { success: false, message: 'Solo el jugador puede abrir la puerta.' };
     }
 
+    const clue = getKeyClue(this.requiredKeyId);
+    const keyLabel = clue ? clue.keyName : this.requiredKeyId;
+
     if (initiator.hasKey(this.requiredKeyId)) {
       // Las llaves especiales de la aventura (key_1 a key_5) permanecen en el inventario como logros
       if (!this.requiredKeyId.startsWith('key_')) {
         initiator.consumeKey(this.requiredKeyId);
       }
       this.isUnlocked = true;
-      initiator.setNotification(`🔓 ¡${this.doorName} desbloqueada y abierta!`, 3.5);
+      initiator.setNotification(`🔓 ¡${this.doorName} desbloqueada y abierta con ${keyLabel}!`, 4.0);
       return {
         success: true,
-        message: `¡Has usado la llave para abrir la ${this.doorName}!`,
+        message: `¡Has usado la ${keyLabel} para abrir la ${this.doorName}!`,
         consumedItem: this.requiredKeyId,
       };
     }
 
-    initiator.setNotification(`🔒 La ${this.doorName} está cerrada con llave. ¡Búscala en la finca!`, 3.5);
+    if (clue) {
+      initiator.setNotification(
+        `🔒 ${this.doorName} cerrada. Requiere la ${clue.keyName}. 📍 Dónde buscarla: ${clue.howToGet}`,
+        6.5
+      );
+      return {
+        success: false,
+        message: `Requiere ${clue.keyName}. Dónde buscarla: ${clue.detailedClue}`,
+      };
+    }
+
+    initiator.setNotification(`🔒 La ${this.doorName} está cerrada con llave. ¡Búscala en la finca!`, 4.0);
     return {
       success: false,
       message: `Necesitas una llave para abrir la ${this.doorName}.`,
@@ -96,11 +111,14 @@ export class Door extends GameObject implements ICollidable, IInteractive {
       return '';
     }
 
+    const clue = getKeyClue(this.requiredKeyId);
+    const keyLabel = clue ? clue.keyName : this.requiredKeyId;
+
     if (initiator instanceof Player && initiator.hasKey(this.requiredKeyId)) {
-      return `🔓 [E] Abrir ${this.doorName} con Llave`;
+      return `🔓 [E] Abrir ${this.doorName} (Tienes ${keyLabel})`;
     }
 
-    return `🔒 ${this.doorName} cerrada (Requiere Llave)`;
+    return `🔒 [E] ${this.doorName} cerrada (Requiere ${keyLabel})`;
   }
 
   public override update(_dt: number): void {}

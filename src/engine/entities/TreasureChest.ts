@@ -5,6 +5,8 @@ import type { IInteractive, InteractionResult } from '../core/IInteractive.ts';
 import type { Camera } from '../core/Camera.ts';
 import { Player } from './Player.ts';
 
+import { getKeyClue } from '../world/KeyClues.ts';
+
 /**
  * TreasureChest: Cofre de roble con herrajes de latón oculto en el jardín secreto.
  * Requiere una llave para abrirse y recompensa al explorador con el Tesoro de Karo.
@@ -42,6 +44,9 @@ export class TreasureChest extends GameObject implements ICollidable, IInteracti
       return { success: false, message: 'Solo el jugador puede abrir el cofre.' };
     }
 
+    const clue = getKeyClue(this.requiredKeyId);
+    const keyLabel = clue ? clue.keyName : 'Llave del Retrato (key_1)';
+
     if (initiator.hasKey(this.requiredKeyId)) {
       if (!this.requiredKeyId.startsWith('key_')) {
         initiator.consumeKey(this.requiredKeyId);
@@ -55,11 +60,21 @@ export class TreasureChest extends GameObject implements ICollidable, IInteracti
       };
     }
 
-    const keyName = this.requiredKeyId === 'key_1' ? 'Llave del Retrato (key_1)' : 'Llave de Hierro';
-    initiator.setNotification(`🔒 El cofre está sellado con cerrojo. ¡Requiere la ${keyName}!`, 3.5);
+    if (clue) {
+      initiator.setNotification(
+        `🔒 Cofre del Tesoro sellado. Requiere la ${clue.keyName}. 📍 Dónde buscarla: ${clue.howToGet}`,
+        6.5
+      );
+      return {
+        success: false,
+        message: `Requiere ${clue.keyName}. Dónde buscarla: ${clue.detailedClue}`,
+      };
+    }
+
+    initiator.setNotification(`🔒 El cofre está sellado con cerrojo. ¡Requiere la ${keyLabel}!`, 4.0);
     return {
       success: false,
-      message: `Necesitas la ${keyName} para abrir este cofre.`,
+      message: `Necesitas la ${keyLabel} para abrir este cofre.`,
     };
   }
 
@@ -67,10 +82,13 @@ export class TreasureChest extends GameObject implements ICollidable, IInteracti
     if (this.isOpen) {
       return '';
     }
+    const clue = getKeyClue(this.requiredKeyId);
+    const keyLabel = clue ? clue.keyName : 'Llave del Retrato (key_1)';
+
     if (initiator instanceof Player && initiator.hasKey(this.requiredKeyId)) {
-      return '💎 [E] Abrir Cofre con Llave';
+      return `💎 [E] Abrir Cofre del Tesoro (Tienes ${keyLabel})`;
     }
-    return '🔒 Cofre Cerrado (Requiere Llave)';
+    return `🔒 [E] Cofre del Tesoro cerrado (Requiere ${keyLabel})`;
   }
 
   public override update(_dt: number): void {}

@@ -3568,6 +3568,24 @@ body {
   display: flex;
   flex-direction: column;
   gap: 12px;
+  max-height: 520px;
+  overflow-y: auto;
+  padding-right: 6px;
+}
+
+.welcome-sign-body::-webkit-scrollbar {
+  width: 5px;
+}
+.welcome-sign-body::-webkit-scrollbar-track {
+  background: rgba(15, 23, 42, 0.4);
+  border-radius: 4px;
+}
+.welcome-sign-body::-webkit-scrollbar-thumb {
+  background: rgba(245, 158, 11, 0.4);
+  border-radius: 4px;
+}
+.welcome-sign-body::-webkit-scrollbar-thumb:hover {
+  background: rgba(245, 158, 11, 0.7);
 }
 
 /* Objetivo Principal del Juego (Karolina) */
@@ -3627,6 +3645,83 @@ body {
   color: #f472b6;
 }
 
+/* Ruta de Progresión Sugerida (Pipeline de 4 Pasos) */
+.welcome-path-box {
+  background: linear-gradient(135deg, rgba(15, 23, 42, 0.8) 0%, rgba(30, 41, 59, 0.7) 100%);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  border-radius: 10px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.welcome-path-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.welcome-path-title {
+  font-size: 0.76rem;
+  font-weight: 800;
+  font-family: var(--font-mono);
+  color: #38bdf8;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.welcome-path-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.path-step-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 6px;
+  padding: 5px 8px;
+  font-size: 0.74rem;
+  color: #cbd5e1;
+  line-height: 1.3;
+}
+
+.path-step-row.step-done {
+  border-color: rgba(16, 185, 129, 0.35);
+  background: rgba(16, 185, 129, 0.07);
+}
+
+.path-step-row.step-active {
+  border-color: rgba(245, 158, 11, 0.45);
+  background: rgba(245, 158, 11, 0.1);
+}
+
+.step-number-tag {
+  font-size: 0.68rem;
+  font-family: var(--font-mono);
+  font-weight: 800;
+  color: #38bdf8;
+  background: rgba(56, 189, 248, 0.15);
+  padding: 1px 5px;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+
+.step-arrow-down {
+  text-align: center;
+  color: rgba(56, 189, 248, 0.5);
+  font-size: 0.75rem;
+  line-height: 0.8;
+  margin: -2px 0;
+}
+
 /* Pista Clave Inicial (Lago y Pesca) */
 .welcome-hint-box {
   background: linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, rgba(56, 189, 248, 0.15) 100%);
@@ -3682,99 +3777,121 @@ body {
   color: #7dd3fc;
 }
 
-/* Lista de Desafíos y Llaves */
+/* Lista de Desafíos y Puertas */
 .welcome-section-title {
-  font-size: 0.76rem;
-  font-weight: 700;
+  font-size: 0.78rem;
+  font-weight: 800;
   font-family: var(--font-mono);
   color: #94a3b8;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  margin-top: 4px;
+  margin-top: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
 .welcome-challenges-list {
   display: flex;
   flex-direction: column;
-  gap: 7px;
+  gap: 10px;
 }
 
-.challenge-item {
+/* Tarjeta individual de Guía de Puerta */
+.door-guide-card {
   display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 8px 10px;
-  background: rgba(15, 23, 42, 0.6);
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 12px;
+  background: rgba(15, 23, 42, 0.75);
   border: 1px solid rgba(255, 255, 255, 0.08);
+  border-left: 3px solid #64748b;
   border-radius: 8px;
   transition: all 0.2s ease;
 }
 
-.challenge-item:hover {
-  background: rgba(30, 41, 59, 0.75);
-  border-color: rgba(255, 255, 255, 0.16);
+.door-guide-card:hover {
+  background: rgba(30, 41, 59, 0.85);
+  border-color: rgba(255, 255, 255, 0.18);
+  transform: translateY(-1px);
 }
 
-.challenge-item.item-active {
-  border-color: rgba(245, 158, 11, 0.45);
+.door-guide-card.door-unlocked {
+  border-left-color: #10b981;
+  background: rgba(16, 185, 129, 0.06);
+}
+
+.door-guide-card.door-active-lead {
+  border-left-color: #f59e0b;
   background: rgba(245, 158, 11, 0.08);
 }
 
-.challenge-item.item-done {
-  border-color: rgba(16, 185, 129, 0.4);
-  background: rgba(16, 185, 129, 0.08);
-}
-
-.challenge-icon-box {
-  font-size: 1.25rem;
-  width: 32px;
-  height: 32px;
-  border-radius: 6px;
-  background: rgba(255, 255, 255, 0.05);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.challenge-info {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  width: 100%;
-}
-
-.challenge-title-row {
+.door-guide-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 6px;
+}
+
+.door-name-box {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.door-name-box strong {
+  font-size: 0.85rem;
+  color: #f8fafc;
+}
+
+.door-coord-badge {
+  font-size: 0.68rem;
+  font-family: var(--font-mono);
+  color: #38bdf8;
+  background: rgba(56, 189, 248, 0.12);
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  padding: 1px 5px;
+  border-radius: 4px;
+}
+
+.door-search-box {
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px dashed rgba(245, 158, 11, 0.3);
+  border-radius: 6px;
+  padding: 6px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.door-search-loc {
+  font-size: 0.73rem;
+  color: #fbbf24;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
   gap: 4px;
 }
 
-.challenge-title-row strong {
-  font-size: 0.8rem;
-  color: #f1f5f9;
+.door-search-loc strong {
+  color: #fef08a;
+  font-family: var(--font-mono);
 }
 
-.challenge-coord {
+.door-search-how {
+  font-size: 0.72rem;
+  color: #cbd5e1;
+  line-height: 1.35;
+}
+
+.door-unlocks-label {
   font-size: 0.7rem;
   color: #94a3b8;
   line-height: 1.3;
 }
 
-.challenge-status-badge {
-  font-size: 0.68rem;
-  font-family: var(--font-mono);
-  font-weight: 700;
-  padding: 2px 6px;
-  border-radius: 4px;
-  flex-shrink: 0;
-}
-
-.challenge-status-badge.badge-key {
-  background: rgba(245, 158, 11, 0.2);
-  color: #fbbf24;
-  border: 1px solid rgba(245, 158, 11, 0.4);
+.door-unlocks-label strong {
+  color: #a7f3d0;
 }
 
 .challenge-status-badge.badge-pending {

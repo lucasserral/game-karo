@@ -116,7 +116,7 @@ export class LevelBuilder {
 
     const door2 = new Door(870, 390, null, null, 'iron_key', 50, 18, 'Puertas traseras'); world.addEntity(door2);
 
-    const door3 = new Door(160, 144, null, null, 'room_key', 18, 50, 'Puerta Vertical', 'vertical'); world.addEntity(door3);
+    const door3 = new Door(160, 144, null, null, 'room_key', 18, 50, 'Puerta Vertical de la habitación', 'vertical'); world.addEntity(door3);
 
     // Minijuego 1: Mesa con nota y rompecabezas de foto en (240, 740)
     const photoTable = new PhotoTable(240, 740, 25, 36)
