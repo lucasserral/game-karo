@@ -64,6 +64,16 @@ export class FishingView {
               🗝️ key_2: <strong>${hasKey2 ? 'Obtenida' : 'Oculta'}</strong>
             </span>
           </div>
+
+          ${
+            !hasKey2
+              ? `
+            <button class="btn-debug-skip" id="btn-debug-key2" title="Modo Debugging: Obtener llave key_2">
+              ⚡ [Debug: Obtener Llave key_2]
+            </button>
+          `
+              : ''
+          }
         </div>
       </div>
     `;
@@ -72,6 +82,12 @@ export class FishingView {
     btnClose?.addEventListener('click', () => {
       this.cleanup();
       MinigameManager.getInstance().closeMinigame();
+    });
+
+    const btnDebug = container.querySelector('#btn-debug-key2');
+    btnDebug?.addEventListener('click', () => {
+      this.minigame.rewardPlayer(player);
+      this.render(container, player);
     });
 
     const canvas = container.querySelector('#fishing-canvas') as HTMLCanvasElement;

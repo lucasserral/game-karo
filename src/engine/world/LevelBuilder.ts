@@ -144,7 +144,7 @@ export class LevelBuilder {
     world.addEntity(quizPaper);
 
     // Minijuego 4: Tablero con cartas de memoria en (970, 370)
-    const memoryBoard = new MemoryBoardEntity(970, 370, 44, 34);
+    const memoryBoard = new MemoryBoardEntity(928, 345, 44, 34);
     world.addEntity(memoryBoard);
 
     // Minijuego 5: Secuencia de platos de colores en (80, 400)

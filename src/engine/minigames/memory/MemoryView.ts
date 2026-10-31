@@ -91,6 +91,16 @@ export class MemoryView {
                   })
                   .join('')}
               </div>
+
+              ${
+                !isCompleted
+                  ? `
+                <button class="btn-debug-skip" id="btn-debug-key4" title="Modo Debugging: Obtener llave key_4">
+                  ⚡ [Debug: Obtener Llave key_4]
+                </button>
+              `
+                  : ''
+              }
             `
             }
           </div>
@@ -102,6 +112,17 @@ export class MemoryView {
     const btnClose = container.querySelector('#btn-close-memory');
     btnClose?.addEventListener('click', () => {
       MinigameManager.getInstance().closeMinigame();
+    });
+
+    const btnDebug = container.querySelector('#btn-debug-key4');
+    btnDebug?.addEventListener('click', () => {
+      this.minigame.cards.forEach((c) => {
+        c.isMatched = true;
+        c.isFlipped = true;
+      });
+      this.minigame.matchedPairsCount = this.minigame.totalPairs;
+      this.minigame.rewardPlayer(player);
+      this.render(container, player);
     });
 
     const btnRestart = container.querySelector('#btn-restart-memory');

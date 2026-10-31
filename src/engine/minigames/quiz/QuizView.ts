@@ -112,6 +112,10 @@ export class QuizView {
                     )
                     .join('')}
                 </div>
+
+                <button class="btn-debug-skip" id="btn-debug-key3" title="Modo Debugging: Obtener llave key_3">
+                  ⚡ [Debug: Obtener Llave key_3]
+                </button>
               </div>
             `
             }
@@ -126,6 +130,13 @@ export class QuizView {
       this.feedbackText = '';
       this.feedbackType = '';
       MinigameManager.getInstance().closeMinigame();
+    });
+
+    const btnDebug = container.querySelector('#btn-debug-key3');
+    btnDebug?.addEventListener('click', () => {
+      this.minigame.currentQuestionIndex = this.minigame.questions.length;
+      this.minigame.rewardPlayer(player);
+      this.render(container, player);
     });
 
     if (!isCompleted) {

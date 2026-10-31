@@ -39,8 +39,18 @@ export class FishingMinigame implements IMinigame {
     return false; // El minijuego de pesca es rejugable infinitamente
   }
 
-  public rewardPlayer(_player: Player): void {
-    // Manejado por generateCatch()
+  public rewardPlayer(player: Player): void {
+    if (!player.hasKey('key_2')) {
+      const keyCatch: CatchItem = {
+        type: 'key',
+        name: 'Llave Marina Antigua (key_2)',
+        icon: '🗝️',
+        detail: 'Una llave de bronce con grabados de olas marinas rescatada del fondo del lago.',
+        rarity: 'legendario',
+      };
+      player.addFishingCatch(keyCatch);
+      player.setNotification('🎉 [DEBUG] ¡Pescaste la llave key_2 del fondo del lago!', 4.5);
+    }
   }
 
   public close(): void {

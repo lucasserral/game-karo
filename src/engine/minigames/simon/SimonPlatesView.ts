@@ -196,6 +196,10 @@ export class SimonPlatesView {
                 `
                       : ''
                 }
+
+                <button class="btn-debug-skip" id="btn-debug-key5" title="Modo Debugging: Obtener llave key_5">
+                  ⚡ [Debug: Obtener Llave key_5]
+                </button>
               </div>
             `
             }
@@ -209,6 +213,16 @@ export class SimonPlatesView {
     btnClose?.addEventListener('click', () => {
       this.cleanup();
       MinigameManager.getInstance().closeMinigame();
+    });
+
+    const btnDebug = container.querySelector('#btn-debug-key5');
+    btnDebug?.addEventListener('click', () => {
+      this.cleanup();
+      this.minigame.currentRound = this.minigame.totalRounds;
+      this.minigame.rewardPlayer(player);
+      this.state = 'won';
+      this.playFanfare();
+      this.render(container, player);
     });
 
     const btnStart = container.querySelector('#btn-start-simon');

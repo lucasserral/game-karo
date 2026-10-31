@@ -117,6 +117,7 @@ window.addEventListener('DOMContentLoaded', async () => {
     golden_key: { label: 'Llave Dorada', icon: '🗝️' },
     iron_key: { label: 'Llave de Hierro', icon: '🗝️' },
     crystal_key: { label: 'Llave de Cristal', icon: '💎' },
+    room_key: { label: 'Llave de la Habitación', icon: '🗝️' },
     key_1: { label: 'Llave del Retrato (key_1)', icon: '🗝️' },
     key_2: { label: 'Llave Marina (key_2)', icon: '🗝️' },
     key_3: { label: 'Llave del Corazón (key_3)', icon: '🗝️' },
