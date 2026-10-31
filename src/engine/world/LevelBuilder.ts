@@ -20,6 +20,7 @@ import { PhotoFragmentItem } from '../entities/PhotoFragmentItem.ts';
 import { FishingRodEntity } from '../entities/FishingRodEntity.ts';
 import { QuizPaperEntity } from '../entities/QuizPaperEntity.ts';
 import { MemoryBoardEntity } from '../entities/MemoryBoardEntity.ts';
+import { SimonPlatesEntity } from '../entities/SimonPlatesEntity.ts';
 import type { InputManager } from '../core/InputManager.ts';
 
 /**
@@ -136,6 +137,10 @@ export class LevelBuilder {
     // Minijuego 4: Tablero con cartas de memoria en (970, 370)
     const memoryBoard = new MemoryBoardEntity(970, 370, 44, 34);
     world.addEntity(memoryBoard);
+
+    // Minijuego 5: Secuencia de platos de colores en (80, 400)
+    const simonPlates = new SimonPlatesEntity(80, 400, 44, 34);
+    world.addEntity(simonPlates);
 
     // Puerta del Invernadero de Cristal (requiere Llave de Cristal)
     world.addEntity(

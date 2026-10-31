@@ -351,6 +351,8 @@ export class World {
         label = 'Papel de Preguntas (Mesa)';
       } else if (className === 'MemoryBoardEntity') {
         label = 'Tablero de Memoria (Cartas)';
+      } else if (className === 'SimonPlatesEntity') {
+        label = 'Alacena de Platos (Secuencia)';
       }
 
       // 3. Renderizar etiqueta flotante sobre el objeto

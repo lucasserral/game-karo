@@ -110,6 +110,10 @@ export function getEntityInfo(entity: GameObject): EntityInfo {
     label = 'Tablero de Memoria (Cartas)';
     icon = '🃏';
     category = 'Minijuegos';
+  } else if (className === 'SimonPlatesEntity') {
+    label = 'Alacena de Platos (Secuencia)';
+    icon = '🍽️';
+    category = 'Minijuegos';
   }
 
   return {
