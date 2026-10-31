@@ -72,11 +72,33 @@ export class SimonPlatesView {
     });
   }
 
+  /**
+   * Calcula el tiempo de destello y el intervalo entre platos para la ronda actual (1 a 16).
+   * A medida que se avanza de ronda, la secuencia se reproduce progresivamente más rápido.
+   */
+  public getSpeedSettings(): { flashDuration: number; stepInterval: number; speedMultiplier: string } {
+    const round = this.minigame.currentRound;
+    // Factor de progreso de 0 (ronda 1) a 1 (ronda 16)
+    const factor = Math.min(1, Math.max(0, (round - 1) / 15));
+
+    // Duración del destello: de 450ms en ronda 1 a 150ms en ronda 16
+    const flashDuration = Math.round(450 - factor * 300);
+
+    // Intervalo entre cada plato: de 660ms en ronda 1 a 210ms en ronda 16
+    const stepInterval = Math.round(660 - factor * 450);
+
+    // Multiplicador visual (1.0x hasta 2.8x)
+    const speedMultiplier = (1.0 + factor * 1.8).toFixed(1);
+
+    return { flashDuration, stepInterval, speedMultiplier };
+  }
+
   public render(container: HTMLElement, player: Player): void {
     const isCompleted = this.minigame.isRewardClaimed;
     const currentRound = this.minigame.currentRound;
     const totalRounds = this.minigame.totalRounds;
     const currentSeq = this.minigame.getCurrentSequence();
+    const speedSettings = this.getSpeedSettings();
 
     container.innerHTML = `
       <div class="simon-widget-wrapper">
@@ -93,23 +115,17 @@ export class SimonPlatesView {
             <button class="simon-close-btn" id="btn-close-simon" title="Cerrar alacena" aria-label="Cerrar">✕</button>
           </div>
 
-          <!-- Progress Bar & Sound Toggle -->
+          <!-- Progress Bar & Speed Indicator (16 Rondas) -->
           <div class="simon-stats-row">
-            <div class="simon-round-dots">
-              ${Array.from({ length: totalRounds })
-                .map((_, idx) => {
-                  const isDone = isCompleted || idx < currentRound - 1;
-                  const isCurrent = !isCompleted && idx === currentRound - 1;
-                  return `
-                  <div class="simon-dot ${isDone ? 'dot-done' : ''} ${isCurrent ? 'dot-active' : ''}"
-                       title="Ronda ${idx + 1}">
-                    ${isDone ? '✓' : idx + 1}
-                  </div>
-                `;
-                })
-                .join('')}
+            <div class="simon-progress-meter-wrapper">
+              <div class="simon-progress-info">
+                <span class="simon-round-badge">Ronda <strong>${isCompleted ? totalRounds : currentRound}</strong> de ${totalRounds}</span>
+                <span class="simon-speed-badge" title="Velocidad actual">⚡ ${speedSettings.speedMultiplier}x vel</span>
+              </div>
+              <div class="simon-progress-meter">
+                <div class="simon-progress-fill" style="width: ${((isCompleted ? totalRounds : currentRound - 1) / totalRounds) * 100}%;"></div>
+              </div>
             </div>
-            <span class="simon-round-badge">Ronda <strong>${isCompleted ? totalRounds : currentRound}</strong> de ${totalRounds}</span>
           </div>
 
           <!-- Body -->
@@ -242,33 +258,36 @@ export class SimonPlatesView {
 
   private playRoundSequence(container: HTMLElement, player: Player): void {
     this.state = 'showing';
-    this.statusMessage = '👀 ¡Observa y escucha la secuencia con atención!';
+    const { flashDuration, stepInterval, speedMultiplier } = this.getSpeedSettings();
+    this.statusMessage = `👀 ¡Observa y escucha la secuencia! (${speedMultiplier}x vel)`;
     this.render(container, player);
 
     const sequence = this.minigame.getCurrentSequence();
-    let delay = 600;
+    let delay = Math.max(350, Math.round(520 - (this.minigame.currentRound / 16) * 180));
 
     sequence.forEach((color, idx) => {
       const t = window.setTimeout(() => {
-        this.flashPlate(color, 400);
+        this.flashPlate(color, flashDuration);
 
         if (idx === sequence.length - 1) {
           // Secuencia completa mostrada, turno del jugador
+          const postDelay = Math.max(250, flashDuration + 120);
           const tEnd = window.setTimeout(() => {
             this.state = 'player_turn';
             this.statusMessage = `✨ ¡Tu turno! Repite los ${sequence.length} platos en orden.`;
             this.render(container, player);
-          }, 600);
+          }, postDelay);
           this.timeouts.push(tEnd);
         }
       }, delay);
       this.timeouts.push(t);
-      delay += 650;
+      delay += stepInterval;
     });
   }
 
   private handlePlayerClick(color: PlateColor, container: HTMLElement, player: Player): void {
-    this.flashPlate(color, 250);
+    const { flashDuration } = this.getSpeedSettings();
+    this.flashPlate(color, Math.min(220, flashDuration));
 
     const result = this.minigame.checkPlayerInput(color, player);
 
@@ -280,12 +299,13 @@ export class SimonPlatesView {
       } else if (result.roundComplete) {
         // Ronda superada
         this.state = 'showing';
-        this.statusMessage = '🌟 ¡Excelente! Ronda completada. Preparando la siguiente...';
+        this.statusMessage = `🌟 ¡Excelente! Ronda ${this.minigame.currentRound - 1} completada. Acelerando ritmo...`;
         this.render(container, player);
 
+        const nextDelay = Math.max(500, Math.round(950 - (this.minigame.currentRound / 16) * 400));
         const t = window.setTimeout(() => {
           this.playRoundSequence(container, player);
-        }, 1100);
+        }, nextDelay);
         this.timeouts.push(t);
       } else {
         // Correcto, pero quedan más pasos en esta ronda
@@ -300,7 +320,7 @@ export class SimonPlatesView {
 
       const t = window.setTimeout(() => {
         this.playRoundSequence(container, player);
-      }, 1400);
+      }, 1250);
       this.timeouts.push(t);
     }
   }

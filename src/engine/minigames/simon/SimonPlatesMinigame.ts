@@ -61,7 +61,7 @@ export class SimonPlatesMinigame implements IMinigame {
 
   public fullSequence: PlateColor[] = [];
   public currentRound = 1;
-  public readonly totalRounds = 5;
+  public readonly totalRounds = 16;
   public playerStep = 0;
 
   private view: SimonPlatesView;
